@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: foodlek
+          POSTGRES_PASSWORD: foodlek
+          POSTGRES_DB: foodlek
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://foodlek:foodlek@localhost:5432/foodlek
+      TEST_DATABASE_URL: postgres://foodlek:foodlek@localhost:5432/foodlek_test
+      BETTER_AUTH_SECRET: ci-secret-that-is-long-enough-for-better-auth
+      APP_URL: http://localhost:3000
+      MAIL_TRANSPORT: console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: psql postgres://foodlek:foodlek@localhost:5432/foodlek -c "CREATE DATABASE foodlek_test"
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm test:integration
+      - run: pnpm db:setup
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e

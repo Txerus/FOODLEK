@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PersonDot } from "@/components/foodlek/person";
 import { QualityBadge } from "@/components/foodlek/quality-badge";
+import { AddToWeek } from "@/components/recipes/add-to-week";
 import { NutritionTable } from "@/components/recipes/nutrition-table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +105,13 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
             <QualityBadge quality={detail.cost.quality} detail="Coût approximatif au prix unitaire ; le coût réel dépend des paquets achetés (voir la liste de courses)." />
           </span>
         </div>
+        {!slot && detail.placement && detail.placement.slots.length > 0 ? (
+          <AddToWeek
+            planId={detail.placement.planId}
+            recipeId={recipe.id}
+            slots={detail.placement.slots.map((s) => ({ key: s.key, label: `${formatDay(s.date)} · ${MEAL_TYPE_LABELS[s.mealType].toLowerCase()}` }))}
+          />
+        ) : null}
       </header>
 
       <section aria-labelledby="portions-title" className="flex flex-col gap-3">

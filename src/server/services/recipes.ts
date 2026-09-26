@@ -38,7 +38,9 @@ export function estimateServingCost(recipe: Recipe, ingredients: IngredientIndex
       missing.push(ing.name);
       continue;
     }
-    const best = priced.reduce((a, b) => ((a.priceCents as number) / a.packQuantity <= (b.priceCents as number) / b.packQuantity ? a : b));
+    const best = priced.reduce((a, b) =>
+      (a.priceCents as number) / a.packQuantity <= (b.priceCents as number) / b.packQuantity ? a : b,
+    );
     total += (qty * (best.priceCents as number)) / best.packQuantity;
     qualities.push(best.quality);
   }
@@ -86,6 +88,8 @@ export interface RecipeDetail extends RecipeCardData {
   cooking: CookingQuantity[];
   /** When opened from a meal of the plan. */
   slot: { key: string; date: string; mealType: MealType; servesSlotKeys: string[]; planId: string } | null;
+  /** Current plan's meals where this recipe could be placed. */
+  placement: { planId: string; slots: { key: string; date: string; mealType: MealType }[] } | null;
 }
 
 export async function getRecipeDetail(householdId: string, slug: string, slotKey: string | null): Promise<RecipeDetail | null> {
@@ -108,26 +112,31 @@ export async function getRecipeDetail(householdId: string, slug: string, slotKey
     ctx,
   };
 
-  // Opened from the plan: use the exact portions of that meal (and its leftovers).
-  if (slotKey) {
-    const planId = await findCurrentPlanId(householdId);
-    if (planId) {
-      const view = await loadPlanView(householdId, planId);
-      if (view.evaluation.assignment[slotKey] === recipe.id) {
-        const session = view.evaluation.sessions.find((s) => s.servesSlotKeys.includes(slotKey));
-        const keys = session?.servesSlotKeys ?? [slotKey];
-        const slot = view.slots.find((s) => s.key === slotKey);
-        const portions = view.evaluation.portions[slotKey] ?? [];
-        const cooking = cookingQuantities(keys.flatMap((k) => view.evaluation.portions[k] ?? []));
-        if (slot) {
-          return {
-            ...base,
-            portions,
-            cooking,
-            slot: { key: slotKey, date: slot.date, mealType: slot.mealType, servesSlotKeys: keys, planId },
-          };
+  const planId = await findCurrentPlanId(householdId);
+  const view = planId ? await loadPlanView(householdId, planId) : null;
+  const placement =
+    planId && view && check.eligible
+      ? {
+          planId,
+          slots: view.slots
+            .filter((s) => recipe.mealTypes.includes(s.mealType) && view.evaluation.assignment[s.key] !== recipe.id)
+            .map((s) => ({ key: s.key, date: s.date, mealType: s.mealType })),
         }
-      }
+      : null;
+
+  // Opened from the plan: use the exact portions of that meal (and its leftovers).
+  if (slotKey && planId && view && view.evaluation.assignment[slotKey] === recipe.id) {
+    const session = view.evaluation.sessions.find((s) => s.servesSlotKeys.includes(slotKey));
+    const keys = session?.servesSlotKeys ?? [slotKey];
+    const slot = view.slots.find((s) => s.key === slotKey);
+    if (slot) {
+      return {
+        ...base,
+        portions: view.evaluation.portions[slotKey] ?? [],
+        cooking: cookingQuantities(keys.flatMap((k) => view.evaluation.portions[k] ?? [])),
+        slot: { key: slotKey, date: slot.date, mealType: slot.mealType, servesSlotKeys: keys, planId },
+        placement,
+      };
     }
   }
 
@@ -142,5 +151,5 @@ export async function getRecipeDetail(householdId: string, slug: string, slotKey
       favourVegetables: m.targets.effectiveGoal === "lose",
     }),
   );
-  return { ...base, portions, cooking: cookingQuantities(portions), slot: null };
+  return { ...base, portions, cooking: cookingQuantities(portions), slot: null, placement };
 }

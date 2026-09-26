@@ -8,10 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --project unit",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm test:integration && pnpm build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db/migrate.ts",
     "db:seed": "NODE_OPTIONS=--conditions=react-server tsx scripts/db/seed.ts",
@@ -20,7 +20,8 @@
     "data:ciqual": "NODE_OPTIONS=--conditions=react-server tsx scripts/data/import-ciqual.ts",
     "retail:sync": "NODE_OPTIONS=--conditions=react-server tsx scripts/retail/sync-open-prices.ts",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:integration": "vitest run --project integration"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
