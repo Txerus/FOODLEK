@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { db } from "../db/client";
 import * as t from "../db/schema";
-import { auth } from "./auth";
+import { getAuth } from "./better-auth";
 
 /**
  * Data access layer for authorisation. Every server action and server
@@ -29,7 +29,7 @@ export class AccessDeniedError extends Error {
 }
 
 export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
-  const session = await auth().api.getSession({ headers: await headers() });
+  const session = await getAuth().api.getSession({ headers: await headers() });
   if (!session) return null;
   const u = session.user as typeof session.user & { role?: string };
   return { id: u.id, name: u.name, email: u.email, role: u.role ?? "user" };

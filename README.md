@@ -22,6 +22,10 @@ pnpm db:setup                 # migrations + données de référence + compte d�
 pnpm dev
 ```
 
+### Windows
+
+Les scripts fonctionnent sous PowerShell et cmd (`cross-env`). Si une erreur serveur apparaît après avoir modifié `.env.local` ou changé de branche, arrête `pnpm dev`, supprime le dossier `.next` et relance. Vérifie que PostgreSQL tourne et que `DATABASE_URL` et `BETTER_AUTH_SECRET` sont bien renseignés dans `.env` **et** `.env.local`.
+
 Compte de démonstration (développement uniquement) : `demo@foodlek.local` / `demo-foodlek-2026` — foyer Alex (perte de poids, protéines élevées) + Camille (maintien), 90 €/semaine, 7 dîners et 5 déjeuners, magasin de démonstration.
 
 > Les prix du magasin de démonstration sont **fictifs** et affichés partout avec l'étiquette « Démo ».

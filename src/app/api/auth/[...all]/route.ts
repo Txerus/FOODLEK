@@ -1,10 +1,10 @@
 import { toNextJsHandler } from "better-auth/next-js";
-import { auth } from "@/server/auth/auth";
+import { getAuth } from "@/server/auth/better-auth";
 
 export async function GET(request: Request) {
-  return toNextJsHandler(auth()).GET(request);
+  return toNextJsHandler(getAuth()).GET(request);
 }
 
 export async function POST(request: Request) {
-  return toNextJsHandler(auth()).POST(request);
+  return toNextJsHandler(getAuth()).POST(request);
 }

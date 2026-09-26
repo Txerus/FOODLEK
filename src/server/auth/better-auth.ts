@@ -80,7 +80,7 @@ function createAuth() {
 type Auth = ReturnType<typeof createAuth>;
 const globalForAuth = globalThis as unknown as { __foodlekAuth?: Auth };
 
-export function auth(): Auth {
+export function getAuth(): Auth {
   if (!globalForAuth.__foodlekAuth) globalForAuth.__foodlekAuth = createAuth();
   return globalForAuth.__foodlekAuth;
 }

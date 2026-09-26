@@ -226,8 +226,8 @@ async function seedDemoAccount() {
     return;
   }
   // Create the account through Better Auth so the password is hashed exactly as at sign-up.
-  const { auth } = await import("../../src/server/auth/auth");
-  await auth().api.signUpEmail({ body: { email, password: "demo-foodlek-2026", name: "Alex" } });
+  const { getAuth } = await import("../../src/server/auth/better-auth");
+  await getAuth().api.signUpEmail({ body: { email, password: "demo-foodlek-2026", name: "Alex" } });
   const [u] = await database.select({ id: t.user.id }).from(t.user).where(eq(t.user.email, email)).limit(1);
   const householdId = "hh_demo";
   await database.insert(t.households).values({ id: householdId, name: "Alex & Camille", onboardingCompletedAt: new Date() }).onConflictDoNothing();
