@@ -95,13 +95,14 @@ test("créer un foyer, générer la semaine, remplacer un repas", async ({ page 
   // Replace a meal: the plan, basket and budget are recomputed
   await page.goto("/planning");
   const beforeTitle = await page.locator("main li.surface h3").first().innerText();
-  const beforeBasket = await page.getByText(/^Panier/).innerText();
   await page.locator("main li.surface").first().getByRole("button", { name: /Modifier :/ }).click();
   await page.getByRole("menuitem", { name: "Trop cher" }).click();
   await expect(page.locator("main li.surface h3").first()).not.toHaveText(beforeTitle, { timeout: 30_000 });
-  const afterBasket = await page.getByText(/^Panier/).innerText();
-  expect(afterBasket).not.toEqual(beforeBasket);
-  expect(euros(afterBasket.split("/")[0])).toBeLessThanOrEqual(euros(beforeBasket.split("/")[0]));
+  const afterBasket = euros((await page.getByText(/^Panier/).innerText()).split("/")[0]);
+  // The shopping list reflects the new menu: same total as the planning.
+  await page.goto("/shopping");
+  expect(euros(await page.locator("header p.font-display").innerText())).toBeCloseTo(afterBasket, 2);
+  await page.goto("/planning");
 
   // Cooking mode from the recipe page
   await page.locator("main li.surface h3 a").first().click();
