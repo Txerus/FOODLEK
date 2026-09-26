@@ -321,9 +321,10 @@ export function scorePlan(
   for (const s of sessions) sessionsPerRecipe.set(s.recipeId, [...(sessionsPerRecipe.get(s.recipeId) ?? []), s]);
   const maxServings = SCORING.maxServingsPerRecipe[prefs.repetitionTolerance];
   for (const list of sessionsPerRecipe.values()) {
-    // Each session counts once, plus its non-leftover repeats.
-    const servings = list.length;
-    if (servings > maxServings) variety += SCORING.extraRepeatPenalty * (servings - maxServings);
+    // Meals eaten, leftovers included; one leftover pair is allowed on top of the tolerance.
+    const servings = list.reduce((n, s) => n + s.servesSlotKeys.length, 0);
+    const allowed = maxServings + (list.some((s) => s.servesSlotKeys.length > 1) ? 1 : 0);
+    if (servings > allowed) variety += SCORING.extraRepeatPenalty * (servings - allowed);
     const days = list.map((s) => ctx.slotsByKey.get(s.slotKey)?.dayIndex ?? 0).sort((a, b) => a - b);
     for (let i = 1; i < days.length; i++) {
       const gap = days[i] - days[i - 1];

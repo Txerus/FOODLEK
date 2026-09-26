@@ -108,7 +108,7 @@ export default async function DashboardPage() {
             </div>
             <ol className="surface divide-y">
               {days.map((date) => (
-                <li key={date} className="grid gap-1 px-4 py-3 sm:grid-cols-[8rem_1fr] sm:gap-4">
+                <li key={date} className="grid grid-cols-[minmax(0,1fr)] gap-1 px-4 py-3 sm:grid-cols-[8rem_minmax(0,1fr)] sm:gap-4">
                   <p className={date === now.date ? "font-semibold text-primary" : "font-medium"}>{formatWeekday(date)}</p>
                   <ul className="flex flex-col gap-1">
                     {slots

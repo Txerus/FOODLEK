@@ -198,12 +198,12 @@ export function HouseholdWizard({
               Retour
             </Button>
             {isLast ? (
-              <Button type="submit" size="lg" disabled={pending}>
+              <Button key="submit" type="submit" size="lg" disabled={pending}>
                 {pending ? <Spinner data-icon="inline-start" /> : <CheckIcon data-icon="inline-start" />}
                 {mode === "onboarding" ? "Générer ma semaine" : "Enregistrer"}
               </Button>
             ) : (
-              <Button type="button" size="lg" onClick={next}>
+              <Button key="next" type="button" size="lg" onClick={next}>
                 Continuer
                 <ArrowRightIcon data-icon="inline-end" />
               </Button>

@@ -205,7 +205,7 @@ async function seedRetail() {
 async function seedFlags() {
   const flags = [
     { key: "open_prices_sync", enabled: false, description: "Synchronisation des prix observés Open Prices" },
-    { key: "assistant", enabled: true, description: "Assistant de modification du planning en langage naturel" },
+    { key: "assistant", enabled: false, description: "Assistant conversationnel de modification du planning (prévu)" },
     { key: "household_invitations", enabled: false, description: "Invitation d'un second compte dans le foyer" },
   ];
   for (const f of flags) {

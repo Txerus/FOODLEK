@@ -1,5 +1,5 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import type { Diet, EaterConstraints } from "@/domain/catalog/diets";
 import type { Allergen, Equipment, MealType } from "@/domain/catalog/types";
 import type { BudgetMode } from "@/domain/budget/budget";
@@ -294,4 +294,17 @@ export function contextToSetup(ctx: HouseholdContext): HouseholdSetup | null {
     acceptPromotions: s.acceptPromotions,
     pantryIngredientIds: ctx.pantry.map((p) => p.ingredientId),
   };
+}
+
+export async function upsertPantryItem(householdId: string, ingredientId: string, quantity: number | null): Promise<void> {
+  await db()
+    .insert(t.pantryItems)
+    .values({ id: newId("pan"), householdId, ingredientId, quantity })
+    .onConflictDoUpdate({ target: [t.pantryItems.householdId, t.pantryItems.ingredientId], set: { quantity } });
+}
+
+export async function removePantryItem(householdId: string, ingredientId: string): Promise<void> {
+  await db()
+    .delete(t.pantryItems)
+    .where(and(eq(t.pantryItems.householdId, householdId), eq(t.pantryItems.ingredientId, ingredientId)));
 }

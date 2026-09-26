@@ -1,0 +1,4 @@
+{
+  "_about": "Correspondances ingrédient FOODLEK → code aliment Ciqual (alim_code). À remplir par un humain après vérification dans la table (https://ciqual.anses.fr/). Tant qu'un ingrédient n'a pas de code vérifié ici, il garde sa composition USDA.",
+  "mappings": {}
+}
