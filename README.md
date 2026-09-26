@@ -11,7 +11,7 @@ Utilisateur → Foyer → Profils → Objectifs → Besoins → Budget → Menu 
 
 ## Démarrage
 
-Prérequis : Node 22+, pnpm 10, PostgreSQL 16+.
+Prérequis : Node 22+, pnpm 10, PostgreSQL 16+ (ou Docker : `docker compose up -d` lance une base prête à l'emploi, identifiants de `.env.example`).
 
 ```bash
 pnpm install
