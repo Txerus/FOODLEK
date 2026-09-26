@@ -17,8 +17,7 @@ export const DAY_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"] as co
 
 const dayList = z.array(z.number().int().min(0).max(6)).max(7);
 
-export const memberSchema = z
-  .object({
+const memberShape = z.object({
     id: z.string().optional(),
     displayName: z.string().trim().min(1, "Indiquez un prénom ou un pseudonyme").max(40),
     isChild: z.boolean(),
@@ -36,8 +35,9 @@ export const memberSchema = z
     allergies: z.array(z.enum(ALLERGENS)),
     excludedIngredientIds: z.array(z.string()).max(100),
     likedIngredientIds: z.array(z.string()).max(100),
-  })
-  .superRefine((m, ctx) => {
+});
+
+export const memberSchema = memberShape.superRefine((m, ctx) => {
     if (m.profileMode === "detailed") {
       if (m.sex === null) ctx.addIssue({ code: "custom", path: ["sex"], message: "Nécessaire au calcul détaillé" });
       if (m.birthYear === null) ctx.addIssue({ code: "custom", path: ["birthYear"], message: "Nécessaire au calcul détaillé" });
@@ -51,10 +51,10 @@ export const memberSchema = z
 
 export type MemberInput = z.infer<typeof memberSchema>;
 
-export const householdSetupSchema = z
-  .object({
+function householdShape<M extends z.ZodType<MemberInput>>(member: M) {
+  return z.object({
     householdName: z.string().trim().min(1).max(60),
-    members: z.array(memberSchema).min(1, "Ajoutez au moins une personne").max(10),
+    members: z.array(member).min(1, "Ajoutez au moins une personne").max(10),
     schedule: z.object({
       breakfast: dayList,
       lunch: dayList,
@@ -78,13 +78,18 @@ export const householdSetupSchema = z
     storeBrand: z.enum(["prefer", "indifferent", "avoid"]),
     acceptPromotions: z.boolean(),
     pantryIngredientIds: z.array(z.string()).max(200),
-  })
-  .superRefine((h, ctx) => {
+  });
+}
+
+export const householdSetupSchema = householdShape(memberSchema).superRefine((h, ctx) => {
     const total = h.schedule.breakfast.length + h.schedule.lunch.length + h.schedule.dinner.length + h.schedule.snack.length;
     if (total === 0) ctx.addIssue({ code: "custom", path: ["schedule"], message: "Choisissez au moins un repas à planifier" });
   });
 
 export type HouseholdSetup = z.infer<typeof householdSetupSchema>;
+
+/** Same structure without business rules: used to restore an unfinished wizard draft. */
+export const householdDraftShapeSchema = householdShape(memberShape);
 
 export function defaultMember(index: number, isChild = false): MemberInput {
   return {

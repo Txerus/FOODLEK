@@ -18,7 +18,9 @@
     "db:setup": "pnpm db:migrate && pnpm db:seed",
     "data:usda": "python3 scripts/data/extract_usda_subset.py",
     "data:ciqual": "NODE_OPTIONS=--conditions=react-server tsx scripts/data/import-ciqual.ts",
-    "retail:sync": "NODE_OPTIONS=--conditions=react-server tsx scripts/retail/sync-open-prices.ts"
+    "retail:sync": "NODE_OPTIONS=--conditions=react-server tsx scripts/retail/sync-open-prices.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -48,6 +50,7 @@
     "drizzle-kit": "0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
+    "prettier": "^3.9.9",
     "shadcn": "^4.21.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",

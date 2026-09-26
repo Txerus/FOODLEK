@@ -38,7 +38,14 @@ export const SCORING = {
   likedIngredientBonus: 0.05,
   outOfSeasonPenalty: 0.1,
   costWeightNutritionFirst: 0.3,
-  maxSessionsPerRecipe: { low: 1, medium: 2, high: 3 } satisfies Record<RepetitionTolerance, number>,
+  /**
+   * How many meals of the same recipe are fine in a week. A dinner eaten again
+   * as the next day's leftovers counts as one: it was chosen for that.
+   */
+  maxServingsPerRecipe: { low: 1, medium: 2, high: 3 } satisfies Record<RepetitionTolerance, number>,
+  sameDayRepeatPenalty: 1,
+  closeRepeatPenalty: 0.3,
+  closeRepeatDays: 2,
   hardTimeMultiplier: 2,
 } as const;
 
@@ -310,11 +317,19 @@ export function scorePlan(
 
   // Variety
   let variety = 0;
-  const sessionsPerRecipe = new Map<string, number>();
-  for (const s of sessions) sessionsPerRecipe.set(s.recipeId, (sessionsPerRecipe.get(s.recipeId) ?? 0) + 1);
-  const maxSessions = SCORING.maxSessionsPerRecipe[prefs.repetitionTolerance];
-  for (const count of sessionsPerRecipe.values()) {
-    if (count > maxSessions) variety += SCORING.extraRepeatPenalty * (count - maxSessions);
+  const sessionsPerRecipe = new Map<string, CookingSession[]>();
+  for (const s of sessions) sessionsPerRecipe.set(s.recipeId, [...(sessionsPerRecipe.get(s.recipeId) ?? []), s]);
+  const maxServings = SCORING.maxServingsPerRecipe[prefs.repetitionTolerance];
+  for (const list of sessionsPerRecipe.values()) {
+    // Each session counts once, plus its non-leftover repeats.
+    const servings = list.length;
+    if (servings > maxServings) variety += SCORING.extraRepeatPenalty * (servings - maxServings);
+    const days = list.map((s) => ctx.slotsByKey.get(s.slotKey)?.dayIndex ?? 0).sort((a, b) => a - b);
+    for (let i = 1; i < days.length; i++) {
+      const gap = days[i] - days[i - 1];
+      if (gap === 0) variety += SCORING.sameDayRepeatPenalty;
+      else if (gap <= SCORING.closeRepeatDays) variety += SCORING.closeRepeatPenalty;
+    }
   }
   if (prefs.maxDistinctRecipes !== null && sessionsPerRecipe.size > prefs.maxDistinctRecipes) {
     variety += SCORING.extraDistinctPenalty * (sessionsPerRecipe.size - prefs.maxDistinctRecipes);

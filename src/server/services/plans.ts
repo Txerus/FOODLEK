@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { MEAL_TYPE_LABELS, type MealType, type Recipe } from "@/domain/catalog/types";
 import { computeTargets } from "@/domain/nutrition/targets";
 import { explainPlan, type Explanation } from "@/domain/planning/explain";
@@ -19,6 +19,8 @@ import {
   type PlanSlot,
 } from "@/domain/planning/types";
 import type { OfferIndex } from "@/domain/retail/types";
+import { isUpcoming, parisNow } from "@/lib/time";
+import { addDays, planningWeekStart, weekStartFor } from "@/lib/week";
 import { db } from "../db/client";
 import * as t from "../db/schema";
 import { newId } from "../ids";
@@ -31,32 +33,17 @@ export const MEAL_ORDER: MealType[] = ["breakfast", "lunch", "snack", "dinner"];
 const ITERATIONS = 900;
 const RECENT_DAYS = 14;
 
-export function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-/** Monday of the week containing `date` (dates are handled as calendar days in UTC). */
-export function weekStartFor(date: Date): string {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const day = (d.getUTCDay() + 6) % 7;
-  d.setUTCDate(d.getUTCDate() - day);
-  return isoDate(d);
-}
-
-export function addDays(iso: string, days: number): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return isoDate(d);
-}
-
-export function buildSlots(ctx: HouseholdContext, weekStart: string): PlanSlot[] {
+/** Meals of the week from the household schedule; meals already past are not planned. */
+export function buildSlots(ctx: HouseholdContext, weekStart: string, now?: Date): PlanSlot[] {
   const schedule = ctx.settings?.mealSchedule;
   if (!schedule) return [];
   const eaterIds = ctx.members.map((m) => m.id);
+  const paris = now ? parisNow(now) : null;
   const slots: PlanSlot[] = [];
   for (let day = 0; day < 7; day++) {
     const date = addDays(weekStart, day);
     for (const mealType of MEAL_ORDER) {
+      if (paris && !isUpcoming(date, mealType, paris)) continue;
       if (schedule[mealType]?.includes(day)) {
         slots.push({ key: `${date}:${mealType}`, date, dayIndex: day, mealType, eaterIds });
       }
@@ -111,7 +98,7 @@ export interface PlanningInputs {
 export async function buildPlanningInputs(
   householdId: string,
   weekStart: string,
-  options: { locked?: Record<string, string>; seed?: number; today?: Date } = {},
+  options: { locked?: Record<string, string>; seed?: number; today?: Date; skipPastMeals?: boolean } = {},
 ): Promise<PlanningInputs> {
   const today = options.today ?? new Date();
   const [ctx, catalog] = await Promise.all([loadHouseholdContext(householdId), getCatalog()]);
@@ -132,7 +119,7 @@ export async function buildPlanningInputs(
   const [feedback, lastWeek] = await Promise.all([feedbackFor(householdId), previousWeekRecipes(householdId, weekStart)]);
 
   const input: PlannerInput = {
-    slots: buildSlots(ctx, weekStart),
+    slots: buildSlots(ctx, weekStart, options.skipPastMeals ? today : undefined),
     members: planMembers(ctx, today),
     recipes: catalog.recipes,
     ingredients: catalog.ingredientIndex,
@@ -192,7 +179,7 @@ export async function generatePlan(householdId: string, weekStart: string): Prom
       if (s.locked && s.recipeId) locked[`${s.date}:${s.mealType}`] = s.recipeId;
     }
   }
-  const inputs = await buildPlanningInputs(householdId, weekStart, { locked });
+  const inputs = await buildPlanningInputs(householdId, weekStart, { locked, skipPastMeals: true });
   const { input } = inputs;
   const settings = inputs.ctx.settings;
   const started = Date.now();
@@ -240,17 +227,12 @@ async function slotRows(planId: string) {
   return db().select().from(t.mealPlanSlots).where(eq(t.mealPlanSlots.planId, planId));
 }
 
-/** The plan to show: this week's, otherwise the most recent upcoming one. */
+/** The plan to show: the week being planned if it exists, otherwise the current week's. */
 export async function findCurrentPlanId(householdId: string, today = new Date()): Promise<string | null> {
+  const planned = await getPlanRow(householdId, planningWeekStart(today));
+  if (planned) return planned.id;
   const current = await getPlanRow(householdId, weekStartFor(today));
-  if (current) return current.id;
-  const upcoming = await db()
-    .select({ id: t.mealPlans.id })
-    .from(t.mealPlans)
-    .where(and(eq(t.mealPlans.householdId, householdId), gte(t.mealPlans.weekStart, weekStartFor(today))))
-    .orderBy(desc(t.mealPlans.weekStart))
-    .limit(1);
-  return upcoming[0]?.id ?? null;
+  return current?.id ?? null;
 }
 
 export interface PlanView {

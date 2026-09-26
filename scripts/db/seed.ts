@@ -222,6 +222,7 @@ async function seedDemoAccount() {
   const existing = await database.select({ id: t.user.id }).from(t.user).where(eq(t.user.email, email)).limit(1);
   if (existing.length > 0) {
     log(`Compte démo déjà présent : ${email}`);
+    await ensureDemoPlan();
     return;
   }
   // Create the account through Better Auth so the password is hashed exactly as at sign-up.
@@ -288,6 +289,16 @@ async function seedDemoAccount() {
     .values(DEMO_PANTRY_SLUGS.map((slug) => ({ id: `pan_demo_${slug}`, householdId, ingredientId: ingredientId(slug), quantity: null })))
     .onConflictDoNothing();
   log(`Compte démo créé : ${email} / demo-foodlek-2026 (développement uniquement)`);
+  await ensureDemoPlan();
+}
+
+/** The demo household always has a menu for the current week. */
+async function ensureDemoPlan() {
+  const { findCurrentPlanId, generatePlan } = await import("../../src/server/services/plans");
+  const { planningWeekStart } = await import("../../src/lib/week");
+  if (await findCurrentPlanId("hh_demo")) return;
+  await generatePlan("hh_demo", planningWeekStart(new Date()));
+  log("Planning de la semaine généré pour le foyer démo.");
 }
 
 async function main() {

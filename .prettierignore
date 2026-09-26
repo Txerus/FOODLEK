@@ -1,0 +1,7 @@
+node_modules
+.next
+drizzle
+pnpm-lock.yaml
+data/reference
+src/components/ui
+.claude
