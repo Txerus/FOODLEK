@@ -32,18 +32,23 @@ Compte de démonstration (développement uniquement) : `demo@foodlek.local` / `d
 
 ## Scripts
 
-| Commande                                                | Rôle                                                                                 |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `pnpm dev` / `pnpm build` / `pnpm start`                | Application Next.js                                                                  |
-| `pnpm typecheck` · `pnpm lint` · `pnpm format`          | Qualité                                                                              |
-| `pnpm test`                                             | Tests unitaires (moteur, nutrition, portions, courses, budget, optimiseur, parseurs) |
-| `pnpm test:integration`                                 | Tests avec PostgreSQL (`foodlek_test`) : workflow, permissions, export, suppression  |
-| `pnpm test:e2e`                                         | Playwright : parcours complet desktop + pages mobiles                                |
-| `pnpm check`                                            | Tout ce qui précède + build                                                          |
-| `pnpm db:generate` · `pnpm db:migrate` · `pnpm db:seed` | Migrations Drizzle et seed                                                           |
-| `pnpm data:usda <foods-FR.db>`                          | Régénère `data/reference/usda-subset.json`                                           |
-| `pnpm data:ciqual [--local DIR]`                        | Importe la table ANSES-Ciqual 2025                                                   |
-| `pnpm retail:sync [--find-stores Ville]`                | Synchronise les prix observés Open Prices                                            |
+| Commande                                                 | Rôle                                                                                           |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `pnpm dev` / `pnpm build` / `pnpm start`                 | Application Next.js                                                                            |
+| `pnpm typecheck` · `pnpm lint` · `pnpm format`           | Qualité                                                                                        |
+| `pnpm test`                                              | Tests unitaires (moteur, nutrition, portions, courses, budget, optimiseur, parseurs)           |
+| `pnpm test:integration`                                  | Tests avec PostgreSQL (`foodlek_test`) : workflow, permissions, export, suppression            |
+| `pnpm test:e2e`                                          | Playwright : parcours complet desktop + pages mobiles                                          |
+| `pnpm check`                                             | Tout ce qui précède + build                                                                    |
+| `pnpm db:generate` · `pnpm db:migrate` · `pnpm db:seed`  | Migrations Drizzle et seed                                                                     |
+| `pnpm data:usda <foods-FR.db>`                           | Régénère `data/reference/usda-subset.json`                                                     |
+| `pnpm data:ciqual [--local DIR]`                         | Importe la table ANSES-Ciqual 2025                                                             |
+| `pnpm retail:sync [--find-stores Ville]`                 | Synchronise les prix observés Open Prices                                                      |
+| `pnpm prix:enseigne --enseigne carrefour --ville Annecy` | Prix réels d'une enseigne autour d'une ville (Open Prices) ; aussi depuis « Magasins et prix » |
+
+### Prix réels
+
+Page **Magasins et prix → Prix réels de votre enseigne** : choisir l'enseigne, la ville et un rayon. FOODLEK récupère sur [Open Prices](https://prices.openfoodfacts.org) les prix réellement payés dans les magasins de l'enseigne autour de cette ville (tickets et étiquettes publiés par la communauté Open Food Facts, licence ODbL), crée le magasin « Carrefour — prix observés autour d'Annecy » et le sélectionne. Il faut que la machine qui fait tourner FOODLEK ait accès à internet ; renseignez `OPEN_DATA_CONTACT` (votre e-mail) dans `.env`. Les sites marchands ne sont pas lus : leurs CGU l'interdisent.
 
 Pour Playwright avec un Chromium déjà installé : `PLAYWRIGHT_CHROMIUM_PATH=/chemin/chrome pnpm test:e2e`.
 

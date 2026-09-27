@@ -8,6 +8,7 @@ _Dernière mise à jour : 27 septembre 2026._
 - Onboarding en 9 étapes avec sauvegarde automatique serveur et reprise : foyer, profils (simplifié/détaillé, situations particulières), régimes/allergies/aliments refusés et favoris, repas par jour, budget et mode, cuisine (temps, niveau, matériel, restes, batch, répétition), magasin et préférences d'achat, placard.
 - Objectif de poids : poids souhaité et délai (2 mois à 1 an ou « pas de délai ») pour les profils détaillés en perte ou prise de poids. Le déficit/surplus en découle (7 700 kcal/kg), plafonné à un rythme sûr (perte ≤ 1 % du poids et ≤ 1 kg/semaine, déficit ≤ 750 kcal/j, jamais sous le plancher ; prise ≤ 0,5 %/semaine) ; cible ramenée à un IMC de 18,5 au minimum. Projection affichée en direct dans l'onboarding et sur la page Nutrition ; les portions de chaque plat suivent ces besoins.
 - Visuels des recettes : illustration originale générée à partir des ingrédients de chaque recette (cartes, fiche, tableau de bord, site public), remplacée automatiquement par une photo déclarée dans `data/recipe-images.json`.
+- **Prix réels par enseigne** : « Magasins et prix » → enseigne + ville + rayon → prix réellement payés dans les magasins de l'enseigne autour de la ville (Open Prices, ODbL), produits à code-barres et vrac, magasin créé et sélectionné ; chaque prix indique le magasin et la date du relevé. Aussi en ligne de commande : `pnpm prix:enseigne`.
 - Courses → drive : choix d'une enseigne (Carrefour, E.Leclerc, Intermarché, Auchan, Courses U, Monoprix), lien « Chercher sur … » par produit, copie de la liste dans le presse-papiers.
 - Besoins nutritionnels avec garde-fous (grossesse, allaitement, TCA, mineurs, régime médical) et explications.
 - Génération de la semaine : optimisation multi-objectifs, portions individuelles, restes du lendemain, repas passés ignorés, semaine suivante à partir du samedi.
@@ -20,12 +21,12 @@ _Dernière mise à jour : 27 septembre 2026._
 
 ## Tests
 
-- 124 tests unitaires, 8 tests d'intégration PostgreSQL, 4 tests Playwright (parcours complet desktop, redirection, 8 pages mobiles sans débordement + courses).
+- 137 tests unitaires, 10 tests d'intégration PostgreSQL, 4 tests Playwright (parcours complet desktop, redirection, 8 pages mobiles sans débordement + courses).
 - `pnpm build` passe.
 
 ## Limites connues
 
-- **Prix réels** : aucune enseigne française n'offre d'accès public ; seul Open Prices (prix observés, ODbL) est intégré, désactivé par défaut, et nécessite des produits avec code-barres reliés aux ingrédients (à saisir). Le magasin utilisable aujourd'hui est la démonstration.
+- **Prix réels** : ce sont les prix observés en magasin (Open Prices), pas le catalogue en ligne des enseignes (CGU). Couverture variable selon la ville et l'ingrédient ; pas de test en conditions réelles depuis l'environnement de développement (réseau fermé) : à vérifier au premier lancement.
 - **Ciqual** : importeur prêt mais non exécuté (téléchargement impossible depuis l'environnement de développement) ; les correspondances ingrédient → code Ciqual sont à vérifier et saisir.
 - **Panier drive automatique (type Jow)** : non disponible. Jow remplit le panier grâce à des partenariats commerciaux avec les enseignes ; FOODLEK n'en a pas. En attendant : liens de recherche par enseigne (formats d'URL à revérifier dans un navigateur, ils peuvent changer) et copie de la liste.
 - Photos de recettes : aucune fournie (droits nécessaires) ; illustrations générées à la place.

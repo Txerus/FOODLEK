@@ -22,6 +22,13 @@
       "when": 1790500849395,
       "tag": "0002_rate_limit_bigint",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790503860624,
+      "tag": "0003_observed_prices",
+      "breakpoints": true
     }
   ]
 }

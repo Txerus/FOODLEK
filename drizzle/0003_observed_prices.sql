@@ -1,0 +1,1 @@
+ALTER TABLE "retail_prices" ADD COLUMN "observed_where" text;

@@ -21,7 +21,8 @@
     "retail:sync": "cross-env NODE_OPTIONS=--conditions=react-server tsx scripts/retail/sync-open-prices.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "prix:enseigne": "cross-env NODE_OPTIONS=--conditions=react-server tsx scripts/retail/sync-observed-prices.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

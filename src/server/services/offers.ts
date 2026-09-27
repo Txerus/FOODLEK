@@ -81,7 +81,8 @@ export async function loadOffersForStore(storeId: string, now = new Date()): Pro
       retailerId: store.retailerId,
       retailerName: store.retailerName,
       storeId: store.id,
-      storeName: store.name,
+      // Observed prices say in which store they were actually seen.
+      storeName: price?.observedWhere ?? store.name,
       externalId: row.product.externalId,
       ean: row.product.ean,
       name: row.product.name,

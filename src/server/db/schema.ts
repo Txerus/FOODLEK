@@ -381,6 +381,8 @@ export const retailPrices = pgTable(
     /** DataQuality */
     quality: text().notNull(),
     sourceUrl: text(),
+    /** For observed prices: the actual store or "médiane de N relevés". */
+    observedWhere: text(),
   },
   (t) => [index().on(t.productId, t.storeId, t.fetchedAt)],
 );
