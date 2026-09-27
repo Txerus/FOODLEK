@@ -19,6 +19,7 @@ import {
   type PlanSlot,
 } from "@/domain/planning/types";
 import type { OfferIndex } from "@/domain/retail/types";
+import { mealCosts, type MealCost } from "@/domain/shopping/meal-cost";
 import { isUpcoming, parisNow } from "@/lib/time";
 import { addDays, planningWeekStart, weekStartFor } from "@/lib/week";
 import { db } from "../db/client";
@@ -110,7 +111,7 @@ export async function buildPlanningInputs(
   let store: StoreSummary | null = null;
   if (settings.storeId) {
     try {
-      [store, offers] = await Promise.all([getStore(settings.storeId), loadOffersForStore(settings.storeId, today)]);
+      [store, offers] = await Promise.all([getStore(settings.storeId), loadOffersForStore(settings.storeId, today, householdId)]);
     } catch (error) {
       logger.error("plan.offers_failed", { householdId, ...errorContext(error) });
     }
@@ -252,6 +253,8 @@ export interface PlanView {
   /** Slots with no compatible recipe, with a human reason. */
   emptySlots: { key: string; label: string }[];
   input: PlannerInput;
+  /** Cost of each cooking session (key = its first slot), leftovers included. */
+  mealCosts: Map<string, MealCost>;
 }
 
 export async function loadPlanView(householdId: string, planId: string, today = new Date()): Promise<PlanView> {
@@ -325,6 +328,7 @@ export async function loadPlanView(householdId: string, planId: string, today = 
     checkedIngredientIds: new Set(checks.filter((c) => c.checked).map((c) => c.ingredientId)),
     emptySlots,
     input,
+    mealCosts: mealCosts(evaluation.shopping.lines),
   };
 }
 

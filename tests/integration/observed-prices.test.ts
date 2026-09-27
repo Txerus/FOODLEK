@@ -38,6 +38,11 @@ function fakeFetch(url: string): unknown {
   if (ids.includes(2) && tags.includes("en:chicken-eggs")) {
     items.push({ id: 103, product_code: "3560070000002", price: 2.3, currency: "EUR", date: recent, location: paris, product: { code: "3560070000002", product_name: "Œufs plein air", quantity: "6", categories_tags: ["en:chicken-eggs"] } });
   }
+  // Last resort: any store in France (another retailer here), never abroad.
+  if (!q.has("location_id__in") && tags.includes("en:feta")) {
+    items.push({ id: 104, product_code: "5200000000003", price: 2.1, currency: "EUR", date: recent, location: { id: 9, osm_name: "E.Leclerc", osm_address_city: "Lyon", osm_address_country_code: "FR" }, product: { code: "5200000000003", product_name: "Feta AOP", product_quantity: 200, product_quantity_unit: "g", categories_tags: ["en:feta"], image_url: "https://images.openfoodfacts.org/images/products/520/feta.jpg" } });
+    items.push({ id: 105, product_code: "5200000000004", price: 1.5, currency: "EUR", date: recent, location: { id: 10, osm_name: "Aldi", osm_address_city: "Bruxelles", osm_address_country_code: "BE" }, product: { code: "5200000000004", product_name: "Feta", product_quantity: 200, product_quantity_unit: "g", categories_tags: ["en:feta"] } });
+  }
   return page(items);
 }
 
@@ -64,7 +69,7 @@ describe("observed retailer prices", () => {
       delayMs: 0,
     });
     expect(result.nearbyStoreCount).toBe(1);
-    expect(result.missing).toEqual(["Feta"]);
+    expect(result.missing).toEqual([]);
     expect(result.priced.find((p) => p.ingredient === "Œuf")?.nearby).toBe(false);
 
     const offers = await loadOffersForStore(result.storeId);
@@ -74,10 +79,12 @@ describe("observed retailer prices", () => {
     const zucchini = offers.get("ing_courgette")?.[0];
     expect(zucchini).toMatchObject({ priceCents: 25, packQuantity: 100 });
     expect(offers.get("ing_oeuf")?.[0].storeName).toBe("Carrefour City, Paris (hors de votre zone)");
-    expect(offers.get("ing_feta")).toBeUndefined();
+    const feta = offers.get("ing_feta") ?? [];
+    expect(feta).toHaveLength(1);
+    expect(feta[0]).toMatchObject({ storeName: "E.Leclerc, Lyon (autre enseigne)", quality: "ESTIMATED", imageUrl: "https://images.openfoodfacts.org/images/products/520/feta.jpg" });
 
     const stores = await listObservedStores(db());
-    expect(stores.find((s) => s.id === result.storeId)?.priceCount).toBe(3);
+    expect(stores.find((s) => s.id === result.storeId)?.priceCount).toBe(4);
   });
 
   it("replaces the store's prices on a new sync", async () => {

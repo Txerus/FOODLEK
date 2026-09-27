@@ -14,6 +14,7 @@ import { addDays } from "@/lib/week";
 import { requireHousehold } from "@/server/auth/access";
 import { formatDay, formatEuros, formatMinutes, formatWeekday } from "@/lib/format";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
+import { MealCostTag } from "@/components/plan/meal-cost";
 import { recipeHref } from "@/lib/routes";
 import { isUpcoming, parisNow } from "@/lib/time";
 
@@ -88,6 +89,12 @@ export default async function DashboardPage() {
                   />
                 ))}
               </div>
+              {(() => {
+                const session = ev.sessions.find((s) => s.servesSlotKeys.includes(next.key));
+                if (!session) return null;
+                const plates = session.servesSlotKeys.reduce((n, k) => n + (ev.portions[k]?.length ?? 0), 0);
+                return session.slotKey === next.key ? <MealCostTag cost={view.mealCosts.get(next.key)} plates={plates} /> : null;
+              })()}
               <div className="flex flex-wrap gap-2">
                 <Button asChild>
                   <Link href={recipeHref(nextRecipe.slug, next.key)}>

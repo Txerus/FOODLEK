@@ -29,6 +29,13 @@
       "when": 1790503860624,
       "tag": "0003_observed_prices",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790508704540,
+      "tag": "0004_product_images_recipe_photos",
+      "breakpoints": true
     }
   ]
 }

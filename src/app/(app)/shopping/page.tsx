@@ -49,11 +49,15 @@ function toView(line: ShoppingLine, ing: Ingredient, now: Date): ShoppingLineVie
       isOrganic: c.offer.isOrganic,
       promotion: c.offer.promotion?.label ?? null,
       substitution: c.offer.substitution,
+      imageUrl: c.offer.imageUrl ?? null,
+      manual: c.offer.manual ?? false,
     })),
     costCents: line.costCents,
     quality: line.quality,
     priceMissing: line.priceMissing,
     usedIn: [...new Set(line.usedIn.map((u) => u.recipeTitle))],
+    purchaseUnit: ing.purchaseUnit,
+    toBuy: Math.ceil(line.toBuy),
   };
 }
 

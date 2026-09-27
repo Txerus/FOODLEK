@@ -9,6 +9,9 @@ _Dernière mise à jour : 27 septembre 2026._
 - Objectif de poids : poids souhaité et délai (2 mois à 1 an ou « pas de délai ») pour les profils détaillés en perte ou prise de poids. Le déficit/surplus en découle (7 700 kcal/kg), plafonné à un rythme sûr (perte ≤ 1 % du poids et ≤ 1 kg/semaine, déficit ≤ 750 kcal/j, jamais sous le plancher ; prise ≤ 0,5 %/semaine) ; cible ramenée à un IMC de 18,5 au minimum. Projection affichée en direct dans l'onboarding et sur la page Nutrition ; les portions de chaque plat suivent ces besoins.
 - Visuels des recettes : illustration originale générée à partir des ingrédients de chaque recette (cartes, fiche, tableau de bord, site public), remplacée automatiquement par une photo déclarée dans `data/recipe-images.json`.
 - **Prix réels par enseigne** : « Magasins et prix » → enseigne + ville + rayon → prix réellement payés dans les magasins de l'enseigne autour de la ville (Open Prices, ODbL), produits à code-barres et vrac, magasin créé et sélectionné ; chaque prix indique le magasin et la date du relevé. Aussi en ligne de commande : `pnpm prix:enseigne`.
+- Liste de courses : photo et nom exact du produit (Open Food Facts), bouton « Indiquer le prix » quand un prix manque (prix visible par le seul foyer, pour son magasin) ; en dernier recours, prix vu dans une autre enseigne, marqué « autre enseigne » et « estimation ».
+- Prix de chaque plat dans la semaine et sur l'accueil : valeur des ingrédients utilisés au prix payé (placard exclu), prix par assiette ; les restes renvoient au plat d'origine.
+- Photos des recettes : `pnpm photos:recettes` (clé Pexels gratuite) propose 8 photos professionnelles par recette ; choix dans Admin → Photos des recettes (`pnpm admin:grant <e-mail>` pour devenir administrateur). Sans photo : illustration.
 - Courses → drive : choix d'une enseigne (Carrefour, E.Leclerc, Intermarché, Auchan, Courses U, Monoprix), lien « Chercher sur … » par produit, copie de la liste dans le presse-papiers.
 - Besoins nutritionnels avec garde-fous (grossesse, allaitement, TCA, mineurs, régime médical) et explications.
 - Génération de la semaine : optimisation multi-objectifs, portions individuelles, restes du lendemain, repas passés ignorés, semaine suivante à partir du samedi.
@@ -21,7 +24,7 @@ _Dernière mise à jour : 27 septembre 2026._
 
 ## Tests
 
-- 137 tests unitaires, 10 tests d'intégration PostgreSQL, 4 tests Playwright (parcours complet desktop, redirection, 8 pages mobiles sans débordement + courses).
+- 142 tests unitaires, 12 tests d'intégration PostgreSQL, 4 tests Playwright (parcours complet desktop, redirection, 8 pages mobiles sans débordement + courses).
 - `pnpm build` passe.
 
 ## Limites connues
@@ -41,7 +44,7 @@ _Dernière mise à jour : 27 septembre 2026._
 1. Lancer l'import Ciqual et vérifier les correspondances des 63 ingrédients.
 2. Back-office d'édition : recettes (avec validation), ingrédients, mappings produits (EAN), enseignes/magasins.
 3. Panier drive : contacter les enseignes (programmes partenaires / affiliation) pour obtenir une API d'ajout au panier ; brancher un adaptateur par enseigne.
-4. Photos : prendre ou acquérir des photos des 26 recettes et les déclarer dans `data/recipe-images.json`.
+4. Photos : lancer `pnpm photos:recettes` puis vérifier chaque photo dans le back-office.
 5. Prix réels : relier des magasins Open Prices et des produits par EAN ; démarcher une enseigne pour un accès partenaire.
 6. Choix des convives par repas, invitation du/de la partenaire dans le foyer.
 7. Assistant : traduction de demandes (« passe sous 75 € », « pas de saumon mardi ») en actions du moteur déjà existantes.

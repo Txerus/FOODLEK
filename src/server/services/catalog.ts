@@ -119,6 +119,7 @@ async function loadFromDb(): Promise<Catalog> {
     origin: r.origin as RecipeOrigin,
     imageUrl: r.imageUrl,
     imageCredit: r.imageCredit,
+    imageSourceUrl: r.imageSourceUrl,
   }));
 
   return {

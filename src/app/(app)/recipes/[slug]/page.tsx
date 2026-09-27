@@ -53,7 +53,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
         </Button>
       </div>
 
-      <RecipeVisual recipe={recipe} priority className="aspect-[16/7] max-h-80" />
+      <RecipeVisual recipe={recipe} priority creditLink sizes="100vw" className="aspect-[16/7] max-h-80" />
 
       <header className="flex flex-col gap-4">
         {slot ? (

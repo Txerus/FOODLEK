@@ -97,8 +97,7 @@ async function seedReference() {
       keepsWell: recipe.keepsWell,
       origin: recipe.origin,
       reviewStatus: check.valid ? "validated" : "draft",
-      imageUrl: recipe.imageUrl,
-      imageCredit: recipe.imageCredit,
+      // Photos are chosen later (pnpm photos:recettes / back-office): never reset here.
     };
     if (!check.valid) log(`Recette ${recipe.slug} laissée en brouillon : ${check.errors.join(" ; ")}`);
     else validated++;

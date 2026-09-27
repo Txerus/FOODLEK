@@ -11,6 +11,7 @@ import { RegenerateButton } from "@/components/plan/regenerate-button";
 import { Badge } from "@/components/ui/badge";
 import { MEAL_TYPE_LABELS, totalMinutes } from "@/domain/catalog/types";
 import { formatDay, formatEuros, formatMinutes } from "@/lib/format";
+import { MealCostTag } from "@/components/plan/meal-cost";
 import { recipeHref } from "@/lib/routes";
 import { parisNow } from "@/lib/time";
 import { addDays } from "@/lib/week";
@@ -35,7 +36,15 @@ export default async function PlanningPage() {
   const memberIndex = new Map(ctx.members.map((m, i) => [m.id, i]));
   const showNumbers = new Map(ev.nutrition.map((n) => [n.memberId, n.showNumbers]));
   const leftoverOf = new Map<string, string>();
-  for (const s of ev.sessions) s.servesSlotKeys.slice(1).forEach((k) => leftoverOf.set(k, s.slotKey));
+  const platesOf = new Map<string, number>();
+  for (const s of ev.sessions) {
+    s.servesSlotKeys.slice(1).forEach((k) => leftoverOf.set(k, s.slotKey));
+    platesOf.set(s.slotKey, s.servesSlotKeys.reduce((n, k) => n + (ev.portions[k]?.length ?? 0), 0));
+  }
+  const slotLabel = (key: string) => {
+    const s = slots.find((x) => x.key === key);
+    return s ? `${formatDay(s.date).toLowerCase()} (${MEAL_TYPE_LABELS[s.mealType].toLowerCase()})` : "";
+  };
   const days = [...new Set(slots.map((s) => s.date))];
   const today = parisNow().date;
   const empty = new Map(view.emptySlots.map((e) => [e.key, e.label]));
@@ -126,6 +135,14 @@ export default async function PlanningPage() {
                             />
                           ))}
                         </div>
+                      ) : null}
+                      {recipe ? (
+                        <MealCostTag
+                          cost={view.mealCosts.get(slot.key)}
+                          plates={platesOf.get(slot.key) ?? 1}
+                          leftoverOf={fromLeftovers ? slotLabel(fromLeftovers) : null}
+                          className="border-t pt-3"
+                        />
                       ) : null}
                     </li>
                   );

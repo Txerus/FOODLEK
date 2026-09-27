@@ -21,6 +21,15 @@ import type { IngredientMeasures } from "@/domain/units/units";
  * keeps migrations simple when a value is added.
  */
 
+export interface RecipePhotoCandidate {
+  src: string;
+  alt: string;
+  credit: string;
+  sourceUrl: string;
+  width: number;
+  height: number;
+}
+
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp({ withTimezone: true })
@@ -264,6 +273,10 @@ export const recipes = pgTable(
     reviewStatus: text().notNull().default("draft"),
     imageUrl: text(),
     imageCredit: text(),
+    /** Page of the photo at its source (Pexels…), for the credit link. */
+    imageSourceUrl: text(),
+    /** Photos proposed by the photo search, to choose from in the back-office. */
+    imageCandidates: jsonb().$type<RecipePhotoCandidate[]>(),
     ...timestamps,
   },
   (t) => [index().on(t.reviewStatus)],
@@ -355,10 +368,14 @@ export const retailProducts = pgTable(
     isOrganic: boolean().notNull().default(false),
     isStoreBrand: boolean().notNull().default(false),
     sourceUrl: text(),
+    /** Product photo (Open Food Facts, CC BY-SA), shown in the shopping list. */
+    imageUrl: text(),
     provider: text().notNull(),
+    /** Set for a product and price typed in by a household: only that household sees it. */
+    householdId: text().references(() => households.id, { onDelete: "cascade" }),
     ...timestamps,
   },
-  (t) => [index().on(t.retailerId), index().on(t.ean)],
+  (t) => [index().on(t.retailerId), index().on(t.ean), index().on(t.householdId)],
 );
 
 /** Price history: one row per observation. A price is only valid for its store and time. */

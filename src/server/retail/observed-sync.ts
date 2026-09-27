@@ -40,6 +40,8 @@ export interface ObservedSyncOptions {
   /** Pause between API calls, to stay polite with a free service. */
   delayMs?: number;
   onProgress?: (message: string) => void;
+  /** Use a price seen at another retailer when this one has none (default: true). */
+  otherRetailersFallback?: boolean;
 }
 
 export interface IngredientForSync {
@@ -54,7 +56,7 @@ export interface ObservedSyncResult {
   storeId: string;
   storeName: string;
   nearbyStoreCount: number;
-  priced: { ingredient: string; offers: number; nearby: boolean }[];
+  priced: { ingredient: string; offers: number; nearby: boolean; scope: ObservedOffer["scope"] }[];
   missing: string[];
   priceCount: number;
 }
@@ -111,7 +113,14 @@ async function retailerLocations(getJson: (p: string) => Promise<unknown>, retai
   return [...all.values()];
 }
 
-async function pricesAt(getJson: (p: string) => Promise<unknown>, locationIds: number[], filter: Record<string, string>, since: string): Promise<OpenPricesPrice[]> {
+/** locationIds = null: every store in France (used as a last resort, other retailers included). */
+async function pricesAt(getJson: (p: string) => Promise<unknown>, locationIds: number[] | null, filter: Record<string, string>, since: string): Promise<OpenPricesPrice[]> {
+  if (locationIds === null) {
+    const params = new URLSearchParams({ ...filter, date__gte: since, order_by: "-date", size: "100" });
+    return pageOf(priceSchema)
+      .parse(await getJson(`/prices?${params}`))
+      .items.filter((p) => (p.location?.osm_address_country_code ?? "").toUpperCase() === "FR");
+  }
   const out: OpenPricesPrice[] = [];
   for (let i = 0; i < locationIds.length; i += ID_CHUNK) {
     const params = new URLSearchParams({
@@ -129,12 +138,12 @@ async function pricesAt(getJson: (p: string) => Promise<unknown>, locationIds: n
 async function offersFor(
   getJson: (p: string) => Promise<unknown>,
   ingredient: IngredientForSync,
-  locationIds: number[],
+  locationIds: number[] | null,
   since: string,
   nearby: boolean,
 ): Promise<ObservedOffer[]> {
   const spec = OBSERVED_PRICE_SPECS[ingredient.slug];
-  if (!spec || locationIds.length === 0) return [];
+  if (!spec || (locationIds !== null && locationIds.length === 0)) return [];
   const products = await pricesAt(getJson, locationIds, { product__categories_tags__overlap: spec.productTags.join(",") }, since);
   const offers = productOffers(products, ingredient, spec, nearby).slice(0, MAX_OFFERS_PER_INGREDIENT);
   for (const tag of spec.looseTags ?? []) {
@@ -183,8 +192,13 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
       const farIds = allIds.filter((id) => !nearbyIds.includes(id));
       offers = await offersFor(getJson, ing, farIds, since, false);
     }
+    if (offers.length === 0 && options.otherRetailersFallback !== false) {
+      // Last resort: a price seen at another retailer in France, clearly labelled.
+      offers = (await offersFor(getJson, ing, null, since, false)).map((o) => ({ ...o, scope: "other_retailer" as const }));
+    }
     found.set(ing.id, offers);
-    progress(`${ing.name} : ${offers.length > 0 ? `${offers.length} prix${offers[0].nearby ? "" : " (hors de votre zone)"}` : "aucun prix"}`);
+    const scopeLabel = offers[0]?.scope === "other_retailer" ? " (autre enseigne)" : offers[0]?.scope === "retailer" ? " (hors de votre zone)" : "";
+    progress(`${ing.name} : ${offers.length > 0 ? `${offers.length} prix${scopeLabel}` : "aucun prix"}`);
   }
 
   // ---- Save --------------------------------------------------------------
@@ -227,6 +241,7 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
           isOrganic: offer.isOrganic,
           isStoreBrand: offer.brand !== null && retailer.brandWords.some((w) => normalizeText(offer.brand as string).includes(w)),
           sourceUrl: offer.ean ? `https://world.openfoodfacts.org/product/${offer.ean}` : null,
+          imageUrl: offer.imageUrl,
           provider: "open-prices",
         };
         await tx.insert(t.retailProducts).values({ id: productId, ...productRow }).onConflictDoUpdate({ target: t.retailProducts.id, set: productRow });
@@ -246,9 +261,11 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
           availability: "unknown",
           fetchedAt: offer.observedAt,
           provider: "open-prices",
-          quality: freshness === "LIVE" ? "LIVE" : freshness === "OLD" ? "ESTIMATED" : "RECENT",
+          // A price from another retailer is only an estimate for this one.
+          quality: offer.scope === "other_retailer" || freshness === "OLD" ? "ESTIMATED" : freshness === "LIVE" ? "LIVE" : "RECENT",
           sourceUrl: offer.sourceUrl,
-          observedWhere: offer.nearby ? offer.observedWhere : `${offer.observedWhere} (hors de votre zone)`,
+          observedWhere:
+            offer.scope === "nearby" ? offer.observedWhere : offer.scope === "retailer" ? `${offer.observedWhere} (hors de votre zone)` : `${offer.observedWhere} (autre enseigne)`,
         });
         priceCount++;
       }
@@ -262,7 +279,7 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
     nearbyStoreCount: nearbyIds.length,
     priced: ingredients
       .filter((i) => (found.get(i.id) ?? []).length > 0)
-      .map((i) => ({ ingredient: i.name, offers: (found.get(i.id) ?? []).length, nearby: (found.get(i.id) ?? [])[0].nearby })),
+      .map((i) => ({ ingredient: i.name, offers: (found.get(i.id) ?? []).length, nearby: (found.get(i.id) ?? [])[0].nearby, scope: (found.get(i.id) ?? [])[0].scope })),
     missing: ingredients.filter((i) => (found.get(i.id) ?? []).length === 0).map((i) => i.name),
     priceCount,
   };

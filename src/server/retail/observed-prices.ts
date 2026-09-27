@@ -42,6 +42,7 @@ const productSchema = z
     quantity: z.string().nullable().optional(),
     categories_tags: z.array(z.string()).nullable().optional(),
     labels_tags: z.array(z.string()).nullable().optional(),
+    image_url: z.string().nullable().optional(),
   })
   .nullable()
   .optional();
@@ -252,7 +253,22 @@ export interface ObservedOffer {
   observationCount: number;
   sourceUrl: string;
   isOrganic: boolean;
+  /** Where the price comes from relative to the chosen area. */
+  scope: "nearby" | "retailer" | "other_retailer";
   nearby: boolean;
+  /** Open Food Facts product photo (CC BY-SA). */
+  imageUrl: string | null;
+}
+
+/** Only Open Food Facts image hosts are accepted (they are allowed by next/image). */
+export function safeImageUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && /(^|\.)openfoodfacts\.org$/.test(u.hostname) ? u.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 function whereLabel(l: OpenPricesLocation | null | undefined): string {
@@ -307,7 +323,9 @@ export function productOffers(
       observationCount: count,
       sourceUrl: `https://prices.openfoodfacts.org/prices/${p.id}`,
       isOrganic: (product.labels_tags ?? []).some((t) => t === "en:organic" || t === "fr:ab-agriculture-biologique"),
+      scope: nearby ? "nearby" : "retailer",
       nearby,
+      imageUrl: safeImageUrl(product.image_url),
     });
   }
   return out.sort((a, b) => a.unitPriceCents - b.unitPriceCents);
@@ -372,7 +390,9 @@ export function looseOffer(
       observationCount: obs.length,
       sourceUrl: `https://prices.openfoodfacts.org/prices/${last.p.id}`,
       isOrganic,
+      scope: nearby ? "nearby" : "retailer",
       nearby,
+      imageUrl: null,
     };
   }
   return null;

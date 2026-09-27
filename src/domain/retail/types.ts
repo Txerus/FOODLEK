@@ -36,6 +36,10 @@ export interface RetailOffer {
   quality: DataQuality;
   /** Set when this product is an equivalent, not the exact ingredient. */
   substitution: string | null;
+  /** Product photo (Open Food Facts), when known. */
+  imageUrl?: string | null;
+  /** Price typed in by the household itself. */
+  manual?: boolean;
 }
 
 export type OfferIndex = ReadonlyMap<string, readonly RetailOffer[]>;

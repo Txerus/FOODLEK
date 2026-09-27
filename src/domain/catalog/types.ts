@@ -162,6 +162,8 @@ export interface Recipe {
   origin: RecipeOrigin;
   imageUrl: string | null;
   imageCredit: string | null;
+  /** Page of the photo at its source, for the credit link. */
+  imageSourceUrl?: string | null;
 }
 
 export type IngredientIndex = ReadonlyMap<string, Ingredient>;

@@ -35,6 +35,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   typedRoutes: false,
+  images: {
+    // Product photos (Open Food Facts, CC BY-SA) and recipe photos (Pexels licence).
+    remotePatterns: [
+      { protocol: "https", hostname: "images.openfoodfacts.org" },
+      { protocol: "https", hostname: "static.openfoodfacts.org" },
+      { protocol: "https", hostname: "images.pexels.com" },
+    ],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

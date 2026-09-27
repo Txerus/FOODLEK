@@ -148,8 +148,24 @@ function Illustration({ recipe }: { recipe: Recipe }) {
   );
 }
 
-export function RecipeVisual({ recipe, className, priority = false }: { recipe: Recipe; className?: string; priority?: boolean }) {
-  const photo = IMAGES[recipe.slug];
+export function RecipeVisual({
+  recipe,
+  className,
+  priority = false,
+  creditLink = false,
+  sizes = "(min-width: 1024px) 33vw, 100vw",
+}: {
+  recipe: Recipe;
+  className?: string;
+  priority?: boolean;
+  /** Link the credit to the photo's page (not inside a card that is itself a link). */
+  creditLink?: boolean;
+  sizes?: string;
+}) {
+  // A photo chosen in the back-office (Pexels) comes first, then a local photo.
+  const photo: (ImageEntry & { sourceUrl?: string | null }) | undefined = recipe.imageUrl
+    ? { src: recipe.imageUrl, alt: recipe.title, credit: recipe.imageCredit ?? "", sourceUrl: recipe.imageSourceUrl ?? null }
+    : IMAGES[recipe.slug];
   return (
     <div
       className={cn("relative aspect-[4/3] overflow-hidden rounded-xl bg-muted", className)}
@@ -157,8 +173,21 @@ export function RecipeVisual({ recipe, className, priority = false }: { recipe: 
     >
       {photo ? (
         <>
-          <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" priority={priority} />
-          <span className="absolute right-2 bottom-2 rounded bg-black/45 px-1.5 py-0.5 text-[0.625rem] text-white">{photo.credit}</span>
+          <Image src={photo.src} alt={photo.alt} fill sizes={sizes} className="object-cover" priority={priority} />
+          {photo.credit ? (
+            creditLink && photo.sourceUrl ? (
+              <a
+                href={photo.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute right-2 bottom-2 rounded bg-black/45 px-1.5 py-0.5 text-[0.625rem] text-white hover:underline"
+              >
+                {photo.credit}
+              </a>
+            ) : (
+              <span className="absolute right-2 bottom-2 rounded bg-black/45 px-1.5 py-0.5 text-[0.625rem] text-white">{photo.credit}</span>
+            )
+          ) : null}
         </>
       ) : (
         <Illustration recipe={recipe} />

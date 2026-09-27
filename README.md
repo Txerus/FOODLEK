@@ -44,6 +44,8 @@ Compte de démonstration (développement uniquement) : `demo@foodlek.local` / `d
 | `pnpm data:usda <foods-FR.db>`                           | Régénère `data/reference/usda-subset.json`                                                     |
 | `pnpm data:ciqual [--local DIR]`                         | Importe la table ANSES-Ciqual 2025                                                             |
 | `pnpm retail:sync [--find-stores Ville]`                 | Synchronise les prix observés Open Prices                                                      |
+| `pnpm photos:recettes [--force]`                         | Photos professionnelles des recettes (Pexels, `PEXELS_API_KEY`)                                |
+| `pnpm admin:grant <e-mail>`                              | Donne l'accès au back-office à un compte                                                       |
 | `pnpm prix:enseigne --enseigne carrefour --ville Annecy` | Prix réels d'une enseigne autour d'une ville (Open Prices) ; aussi depuis « Magasins et prix » |
 
 ### Prix réels

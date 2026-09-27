@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PageHeader } from "@/components/foodlek/page-header";
 import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/format";
@@ -21,7 +22,15 @@ export default async function AdminPage() {
   const o = await adminOverview();
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title="Back-office" description="Vue d'ensemble des données de référence et des intégrations." />
+      <PageHeader
+        title="Back-office"
+        description="Vue d'ensemble des données de référence et des intégrations."
+        actions={
+          <Link href="/admin/photos" className="text-sm font-medium underline underline-offset-4">
+            Photos des recettes
+          </Link>
+        }
+      />
       <div className="grid gap-4 md:grid-cols-3">
         <Card title="Comptes">
           <p className="font-display text-3xl font-semibold">{o.users}</p>

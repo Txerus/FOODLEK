@@ -64,7 +64,7 @@ export interface RecipeCardData {
 
 export async function listRecipesForHousehold(householdId: string): Promise<{ cards: RecipeCardData[]; ctx: HouseholdContext }> {
   const [catalog, ctx] = await Promise.all([getCatalog(), loadHouseholdContext(householdId)]);
-  const offers = ctx.settings?.storeId ? await loadOffersForStore(ctx.settings.storeId) : new Map();
+  const offers = ctx.settings?.storeId ? await loadOffersForStore(ctx.settings.storeId, new Date(), householdId) : new Map();
   const eaters = ctx.members.map((m) => ({ name: m.displayName, constraints: m.constraints }));
   const cards = catalog.recipes.map((recipe) => {
     const check = checkRecipeForEaters(recipe, catalog.ingredientIndex, eaters);
@@ -97,7 +97,7 @@ export async function getRecipeDetail(householdId: string, slug: string, slotKey
   const recipe = catalog.recipesBySlug.get(slug);
   if (!recipe) return null;
   const ctx = await loadHouseholdContext(householdId);
-  const offers = ctx.settings?.storeId ? await loadOffersForStore(ctx.settings.storeId) : new Map();
+  const offers = ctx.settings?.storeId ? await loadOffersForStore(ctx.settings.storeId, new Date(), householdId) : new Map();
   const eaters = ctx.members.map((m) => ({ name: m.displayName, constraints: m.constraints }));
   const check = checkRecipeForEaters(recipe, catalog.ingredientIndex, eaters);
   const base = {

@@ -22,7 +22,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:integration": "vitest run --project integration",
-    "prix:enseigne": "cross-env NODE_OPTIONS=--conditions=react-server tsx scripts/retail/sync-observed-prices.ts"
+    "prix:enseigne": "cross-env NODE_OPTIONS=--conditions=react-server tsx scripts/retail/sync-observed-prices.ts",
+    "photos:recettes": "cross-env NODE_OPTIONS=--conditions=react-server tsx scripts/data/recipe-photos.ts",
+    "admin:grant": "tsx scripts/db/grant-admin.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
