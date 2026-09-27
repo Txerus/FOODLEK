@@ -134,7 +134,8 @@ const UNIT_LABELS: Record<Unit, { one: string; many: string }> = {
 const numberFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
 
 export function formatQuantity(quantity: number, unit: Unit): string {
-  const label = quantity > 1 ? UNIT_LABELS[unit].many : UNIT_LABELS[unit].one;
+  // French plural starts at 2: « 1,5 pincée », « 2 pincées ».
+  const label = quantity >= 2 ? UNIT_LABELS[unit].many : UNIT_LABELS[unit].one;
   if (unit === "g" && quantity >= 1000) return `${numberFormatter.format(quantity / 1000)} kg`;
   if (unit === "ml" && quantity >= 1000) return `${numberFormatter.format(quantity / 1000)} l`;
   const n = numberFormatter.format(quantity);

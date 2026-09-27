@@ -152,7 +152,12 @@ export const OBSERVED_PRICE_SPECS: Record<string, ObservedPriceSpec> = {
     productTags: ["en:pork-filet-mignon"],
     excludeTags: ["en:cooked-pork-filet-mignon", "en:smoked-pork-filet-mignon"],
   },
-  "lentilles-vertes": { productTags: ["en:green-lentils"], excludeWords: ["cuisine", "cuites", "salade"] },
+  // Dry lentils only: canned ones ("au naturel", drained weight) are cooked, not the composition used.
+  "lentilles-vertes": {
+    productTags: ["en:green-lentils"],
+    excludeTags: ["en:canned-green-lentils", "en:canned-foods"],
+    excludeWords: ["cuisine", "cuites", "salade", "naturel", "egoutt"],
+  },
   "haricots-blancs": { productTags: ["en:white-beans"], excludeWords: ["sauce tomate", "cassoulet"], drained: true },
   "yaourt-nature": {
     productTags: ["en:plain-yogurts"],

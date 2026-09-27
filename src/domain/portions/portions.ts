@@ -1,4 +1,4 @@
-import type { DataQuality } from "../common/data-quality";
+import { worstQuality, type DataQuality } from "../common/data-quality";
 import type { Ingredient, IngredientIndex, IngredientRole, Recipe } from "../catalog/types";
 import { nutrientsForGrams, type Nutrients } from "../nutrition/nutrients";
 import type { MealTarget } from "../nutrition/targets";
@@ -202,7 +202,7 @@ export function computeMemberPortion(
   const factors = solvePortionFactors(totals, eater, config);
   const { items, weighted } = portionItemsFor(recipe, ingredients, factors);
   const nutrition = nutritionOfItems(weighted);
-  const quality: DataQuality = eater.target.estimated && nutrition.quality !== "MISSING" ? "ESTIMATED" : nutrition.quality;
+  const quality: DataQuality = eater.target.estimated ? worstQuality([nutrition.quality, "ESTIMATED"]) : nutrition.quality;
   return {
     memberId: eater.memberId,
     name: eater.name,

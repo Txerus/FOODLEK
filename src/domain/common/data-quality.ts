@@ -65,7 +65,8 @@ export function freshnessOf(
 ): Freshness {
   if (!fetchedAt) return "UNAVAILABLE";
   const age = now.getTime() - fetchedAt.getTime();
-  if (age < 0) return "LIVE";
+  // A date in the future (clock skew, bad data) is not trusted as fresh.
+  if (age < -5 * 60_000) return "OLD";
   if (age <= thresholds.liveMs) return "LIVE";
   if (age <= thresholds.veryRecentMs) return "VERY_RECENT";
   if (age <= thresholds.recentMs) return "RECENT";

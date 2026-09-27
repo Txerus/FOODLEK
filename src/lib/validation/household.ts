@@ -16,9 +16,15 @@ export const DAY_LABELS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "S
 export const DAY_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"] as const;
 
 const dayList = z.array(z.number().int().min(0).max(6)).max(7);
+/** A list of identifiers: bounded, duplicates removed (a double entry must not crash the save). */
+const idList = (max: number) =>
+  z
+    .array(z.string().max(100))
+    .max(max)
+    .transform((ids) => [...new Set(ids)]);
 
 const memberShape = z.object({
-    id: z.string().optional(),
+    id: z.string().max(100).optional(),
     displayName: z.string().trim().min(1, "Indiquez un prénom ou un pseudonyme").max(40),
     isChild: z.boolean(),
     profileMode: z.enum(["detailed", "simplified"]),
@@ -35,8 +41,8 @@ const memberShape = z.object({
     specialSituations: z.array(z.enum(SPECIAL_SITUATIONS)),
     diets: z.array(z.enum(DIETS)),
     allergies: z.array(z.enum(ALLERGENS)),
-    excludedIngredientIds: z.array(z.string()).max(100),
-    likedIngredientIds: z.array(z.string()).max(100),
+    excludedIngredientIds: idList(100),
+    likedIngredientIds: idList(100),
 });
 
 export const memberSchema = memberShape.superRefine((m, ctx) => {
@@ -83,15 +89,17 @@ function householdShape<M extends z.ZodType<MemberInput>>(member: M) {
     maxDistinctRecipes: z.number().int().min(1).max(21).nullable(),
     repetitionTolerance: z.enum(["low", "medium", "high"]),
     useLeftovers: z.boolean(),
-    storeId: z.string().nullable(),
+    storeId: z.string().max(100).nullable(),
     organic: z.enum(["prefer", "indifferent"]),
     storeBrand: z.enum(["prefer", "indifferent", "avoid"]),
     acceptPromotions: z.boolean(),
-    pantryIngredientIds: z.array(z.string()).max(200),
+    pantryIngredientIds: idList(200),
   });
 }
 
 export const householdSetupSchema = householdShape(memberSchema).superRefine((h, ctx) => {
+    const ids = h.members.map((m) => m.id).filter((id): id is string => Boolean(id));
+    if (new Set(ids).size !== ids.length) ctx.addIssue({ code: "custom", path: ["members"], message: "Deux profils ont le même identifiant" });
     const total = h.schedule.breakfast.length + h.schedule.lunch.length + h.schedule.dinner.length + h.schedule.snack.length;
     if (total === 0) ctx.addIssue({ code: "custom", path: ["schedule"], message: "Choisissez au moins un repas à planifier" });
   });

@@ -16,8 +16,8 @@ import { authClient } from "@/lib/auth-client";
 
 const schema = z.object({
   name: z.string().trim().min(1, "Indiquez un prénom").max(40),
-  email: z.string().trim().email("Adresse e-mail invalide"),
-  password: z.string().min(10, "10 caractères minimum").max(128),
+  email: z.string().trim().min(1, "Indiquez votre adresse e-mail").email("Adresse e-mail invalide"),
+  password: z.string().min(1, "Choisissez un mot de passe").min(10, "Le mot de passe doit contenir au moins 10 caractères").max(128),
   consent: z.boolean().refine((v) => v, "Nécessaire pour créer le compte"),
 });
 
@@ -88,8 +88,7 @@ export function SignupForm({ requireVerification }: { requireVerification: boole
         <Field data-invalid={Boolean(errors.password)}>
           <FieldLabel htmlFor="password">Mot de passe</FieldLabel>
           <Input id="password" type="password" autoComplete="new-password" aria-invalid={Boolean(errors.password)} {...form.register("password")} />
-          <FieldDescription>10 caractères minimum.</FieldDescription>
-          <FieldError errors={[errors.password]} />
+          {errors.password ? <FieldError errors={[errors.password]} /> : <FieldDescription>10 caractères minimum.</FieldDescription>}
         </Field>
         <Field orientation="horizontal" data-invalid={Boolean(errors.consent)}>
           <Checkbox
@@ -98,11 +97,14 @@ export function SignupForm({ requireVerification }: { requireVerification: boole
             onCheckedChange={(checked) => form.setValue("consent", checked === true, { shouldValidate: true })}
           />
           <FieldLabel htmlFor="consent" className="font-normal leading-snug">
-            J'accepte que mes informations (dont, si je les renseigne, poids et objectifs) soient utilisées pour calculer mes menus, selon la{" "}
-            <Link href="/confidentialite" className="underline underline-offset-4">
-              politique de confidentialité
-            </Link>
-            .
+            {/* One inline block: the label is a flex container, loose text and link would become columns. */}
+            <span className="block">
+              J'accepte que mes informations (dont, si je les renseigne, poids et objectifs) soient utilisées pour calculer mes menus, selon la{" "}
+              <Link href="/confidentialite" className="underline underline-offset-4">
+                politique de confidentialité
+              </Link>
+              .
+            </span>
           </FieldLabel>
         </Field>
         <FieldError errors={[errors.consent]} />

@@ -124,7 +124,13 @@ export function checkRecipeForEaters(
   const warnings: string[] = [];
   const allergens = new Set(recipeAllergens(recipe, ingredients));
   const ingredientIds = new Set(recipe.ingredients.map((i) => i.ingredientId));
+  // An ingredient we know nothing about could hide an allergen or a refused food.
+  const unknown = recipe.ingredients.filter((i) => !ingredients.has(i.ingredientId)).map((i) => i.ingredientId);
   for (const eater of eaters) {
+    const c = eater.constraints;
+    if (unknown.length > 0 && (c.allergies.length > 0 || c.excludedIngredientIds.length > 0 || c.diets.length > 0)) {
+      reasons.push(`${eater.name} : ingrédient non référencé (${unknown.join(", ")})`);
+    }
     for (const diet of eater.constraints.diets) {
       const check = checkRecipeDiet(recipe, ingredients, diet);
       if (!check.compatible) reasons.push(`${eater.name} : ${DIET_LABELS[diet].toLowerCase()} (${check.reasons.join(", ")})`);

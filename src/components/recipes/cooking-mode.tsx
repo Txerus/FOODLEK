@@ -187,7 +187,9 @@ export function CookingMode({
             <XIcon />
           </Link>
         </Button>
-        <p className="min-w-0 flex-1 truncate font-medium">{title}</p>
+        <h1 className="min-w-0 flex-1 truncate text-base font-medium" title={title}>
+          {title}
+        </h1>
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="sm">

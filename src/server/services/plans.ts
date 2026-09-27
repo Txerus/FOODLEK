@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { MEAL_TYPE_LABELS, type MealType, type Recipe } from "@/domain/catalog/types";
 import { computeTargets } from "@/domain/nutrition/targets";
 import { explainPlan, type Explanation } from "@/domain/planning/explain";
@@ -152,10 +152,12 @@ export async function buildPlanningInputs(
   return { ctx, catalog, offers, store, input };
 }
 
-async function writePlanSlots(planId: string, slots: PlanSlot[], assignment: Assignment, locked: Record<string, string>) {
-  await db().delete(t.mealPlanSlots).where(eq(t.mealPlanSlots.planId, planId));
+type Tx = Parameters<Parameters<ReturnType<typeof db>["transaction"]>[0]>[0];
+
+async function writePlanSlots(tx: Tx, planId: string, slots: PlanSlot[], assignment: Assignment, locked: Record<string, string>) {
+  await tx.delete(t.mealPlanSlots).where(eq(t.mealPlanSlots.planId, planId));
   if (slots.length === 0) return;
-  await db()
+  await tx
     .insert(t.mealPlanSlots)
     .values(
       slots.map((s) => ({
@@ -171,7 +173,7 @@ async function writePlanSlots(planId: string, slots: PlanSlot[], assignment: Ass
     );
 }
 
-export async function generatePlan(householdId: string, weekStart: string): Promise<string> {
+export async function generatePlan(householdId: string, weekStart: string): Promise<{ planId: string; droppedLocks: number }> {
   // Keep pinned meals of an existing plan for the same week.
   const existing = await getPlanRow(householdId, weekStart);
   const locked: Record<string, string> = {};
@@ -190,11 +192,24 @@ export async function generatePlan(householdId: string, weekStart: string): Prom
     evaluations: result.evaluations,
     durationMs: Date.now() - started,
     unfillable: result.unfillable.length,
+    droppedLocks: result.droppedLocks.length,
   });
+  // Pins that no longer fit the household are released, not kept.
+  const keptLocks = Object.fromEntries(Object.entries(locked).filter(([key]) => !result.droppedLocks.some((d) => d.slotKey === key)));
 
-  const planId = existing?.id ?? newId("plan");
+  let planId = existing?.id ?? newId("plan");
+  // One transaction, serialised per household: a double click or two partners
+  // regenerating at once can neither create two plans nor leave one empty.
   await db().transaction(async (tx) => {
-    if (existing) {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`plan:${householdId}`}))`);
+    const [current] = await tx
+      .select({ id: t.mealPlans.id })
+      .from(t.mealPlans)
+      .where(and(eq(t.mealPlans.householdId, householdId), eq(t.mealPlans.weekStart, weekStart), eq(t.mealPlans.status, "active")))
+      .orderBy(desc(t.mealPlans.createdAt))
+      .limit(1);
+    if (current) planId = current.id;
+    if (current) {
       await tx
         .update(t.mealPlans)
         .set({ seed: input.seed, generatedAt: new Date(), storeId: settings?.storeId ?? null, overBudgetAcceptedAt: null })
@@ -209,9 +224,9 @@ export async function generatePlan(householdId: string, weekStart: string): Prom
         storeId: settings?.storeId ?? null,
       });
     }
+    await writePlanSlots(tx, planId, input.slots, result.best.assignment, keptLocks);
   });
-  await writePlanSlots(planId, input.slots, result.best.assignment, locked);
-  return planId;
+  return { planId, droppedLocks: result.droppedLocks.length };
 }
 
 async function getPlanRow(householdId: string, weekStart: string) {

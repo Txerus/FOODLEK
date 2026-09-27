@@ -1575,33 +1575,41 @@
       ],
       "url": "https://fdc.nal.usda.gov/food-details/172205/nutrients"
     },
-    "174278": {
-      "fdcId": "174278",
-      "name": "Soy sauce made from soy (tamari)",
+    "174277": {
+      "fdcId": "174277",
+      "name": "Soy sauce made from soy and wheat (shoyu)",
       "source": "USDA_SR_LEGACY",
       "sourceLabel": "USDA FoodData Central – SR Legacy",
       "sourceVersion": "SR Legacy (2018-04)",
       "per100g": {
-        "energyKcal": 60.0,
-        "proteinG": 10.51,
-        "fatG": 0.1,
-        "carbsG": 5.57,
+        "energyKcal": 53.0,
+        "proteinG": 8.14,
+        "fatG": 0.57,
+        "carbsG": 4.93,
         "fiberG": 0.8,
-        "sugarsG": 1.7,
-        "saturatedFatG": 0.011,
-        "sodiumMg": 5586.0
+        "sugarsG": 0.4,
+        "saturatedFatG": 0.073,
+        "sodiumMg": 5493.0
       },
       "portions": [
         {
           "description": "1 tbsp",
-          "grams": 18.0
+          "grams": 16.0
         },
         {
           "description": "1 tsp",
-          "grams": 6.0
+          "grams": 5.3
+        },
+        {
+          "description": "1 cup",
+          "grams": 255.0
+        },
+        {
+          "description": "1 individual packet",
+          "grams": 8.9
         }
       ],
-      "url": "https://fdc.nal.usda.gov/food-details/174278/nutrients"
+      "url": "https://fdc.nal.usda.gov/food-details/174277/nutrients"
     },
     "170924": {
       "fdcId": "170924",

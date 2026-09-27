@@ -1,3 +1,4 @@
+import { checkRecipeForEaters } from "../catalog/diets";
 import { createRng, pickIndex, type Rng } from "../common/rng";
 import { checkRecipeDiet, recipeProteinFamilies } from "../catalog/diets";
 import { totalMinutes, type Recipe } from "../catalog/types";
@@ -29,6 +30,11 @@ export interface OptimizationResult {
   evaluations: number;
   /** Slots without any compatible recipe. */
   unfillable: PlanSlot[];
+  /**
+   * Pinned meals that no longer fit the people eating them (a diet, an
+   * allergy or a refused food added since): unpinned and replaced.
+   */
+  droppedLocks: { slotKey: string; recipeId: string; reasons: string[] }[];
   candidates: Record<string, Candidate[]>;
 }
 
@@ -110,7 +116,33 @@ function proposeMove(
   return next;
 }
 
-export function optimizePlan(input: PlannerInput): OptimizationResult {
+/** Splits pinned meals into those still allowed for the slot's eaters and those that are not. */
+export function checkLocks(input: PlannerInput): { locked: Record<string, string>; dropped: OptimizationResult["droppedLocks"] } {
+  const locked: Record<string, string> = {};
+  const dropped: OptimizationResult["droppedLocks"] = [];
+  const recipes = new Map(input.recipes.map((r) => [r.id, r]));
+  for (const slot of input.slots) {
+    const recipeId = input.locked[slot.key];
+    if (!recipeId) continue;
+    const recipe = recipes.get(recipeId);
+    if (!recipe) {
+      dropped.push({ slotKey: slot.key, recipeId, reasons: ["recette indisponible"] });
+      continue;
+    }
+    const eaters = input.members
+      .filter((m) => slot.eaterIds.includes(m.profile.id))
+      .map((m) => ({ name: m.profile.name, constraints: m.constraints }));
+    const check = checkRecipeForEaters(recipe, input.ingredients, eaters);
+    if (check.eligible) locked[slot.key] = recipeId;
+    else dropped.push({ slotKey: slot.key, recipeId, reasons: check.reasons });
+  }
+  return { locked, dropped };
+}
+
+export function optimizePlan(rawInput: PlannerInput): OptimizationResult {
+  // A pinned meal is never allowed to break a diet, an allergy or a refusal.
+  const { locked, dropped } = checkLocks(rawInput);
+  const input: PlannerInput = { ...rawInput, locked };
   const ctx = createContext(input);
   const candidates = candidatesBySlot(input);
   const unfillable = input.slots.filter((s) => !input.locked[s.key] && candidates[s.key].length === 0);
@@ -136,7 +168,7 @@ export function optimizePlan(input: PlannerInput): OptimizationResult {
     }
   }
 
-  return { best, evaluations, unfillable, candidates };
+  return { best, evaluations, unfillable, candidates, droppedLocks: dropped };
 }
 
 export const REPLACEMENT_REASONS = [

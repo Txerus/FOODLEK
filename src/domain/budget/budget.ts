@@ -59,7 +59,8 @@ export function summarizeBudget(input: BudgetInput, config: BudgetConfig = DEFAU
   const margin = input.budgetCents - input.basketCents;
   let status: BudgetStatus = "under";
   if (margin < 0) {
-    status = input.basketCents <= Math.round(input.budgetCents * (1 + config.targetTolerance)) ? "within_tolerance" : "over";
+    // A strict budget has no tolerance: any overrun is an overrun.
+    status = input.mode !== "strict" && input.basketCents <= Math.round(input.budgetCents * (1 + config.targetTolerance)) ? "within_tolerance" : "over";
   }
   const div = (n: number) => (n > 0 ? Math.round(input.basketCents / n) : null);
   return {

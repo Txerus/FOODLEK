@@ -152,7 +152,9 @@ export function computeTargets(
     ]);
   }
 
-  if (age !== null && age < 18) {
+  // Only the birth year is known: someone born 18 years ago may still be 17
+  // until their birthday, so they stay protected for that whole year.
+  if (age !== null && age - 1 < 18) {
     warnings.push(
       "Les besoins des moins de 18 ans dépendent de la croissance. Nous ne calculons pas d'objectif calorique et n'appliquons jamais de restriction : les portions suivent l'appétit.",
     );

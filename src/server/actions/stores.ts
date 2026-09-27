@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, gte } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { buildSeedIngredients } from "@/data/ingredients";
@@ -8,6 +8,7 @@ import { householdForAction } from "../auth/access";
 import { db } from "../db/client";
 import * as t from "../db/schema";
 import { env } from "../env";
+import { newId } from "../ids";
 import { logger } from "../observability/logger";
 import { ObservedSyncError, syncObservedPrices } from "../retail/observed-sync";
 import { FRENCH_RETAILERS } from "../retail/registry";
@@ -19,8 +20,33 @@ const syncInput = z.object({
   radiusKm: z.number().int().min(5).max(100),
 });
 
-// One sync at a time per server process (the API is free and shared).
-let syncing = false;
+/** A lock older than this is considered abandoned (crashed process). */
+const LOCK_STALE_MS = 10 * 60_000;
+
+/**
+ * One sync at a time for the whole deployment (the API is free and shared):
+ * a "running" row committed in sync_logs, taken under a database lock so two
+ * processes cannot both take it. Returns the lock id, or null when busy.
+ */
+async function acquireSyncLock(): Promise<string | null> {
+  const lockId = newId("sync");
+  const acquired = await db().transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext('sync:open-prices'))`);
+    const running = await tx
+      .select({ id: t.syncLogs.id })
+      .from(t.syncLogs)
+      .where(and(eq(t.syncLogs.provider, "open-prices-lock"), eq(t.syncLogs.status, "running"), gte(t.syncLogs.startedAt, new Date(Date.now() - LOCK_STALE_MS))))
+      .limit(1);
+    if (running.length > 0) return false;
+    await tx.insert(t.syncLogs).values({ id: lockId, provider: "open-prices-lock", status: "running" });
+    return true;
+  });
+  return acquired ? lockId : null;
+}
+
+async function releaseSyncLock(lockId: string, status: "success" | "failed") {
+  await db().update(t.syncLogs).set({ status, finishedAt: new Date() }).where(eq(t.syncLogs.id, lockId));
+}
 
 export interface ObservedSyncSummary {
   storeId: string;
@@ -41,16 +67,10 @@ export async function syncObservedPricesAction(input: unknown): Promise<ActionRe
     const data = syncInput.parse(input);
     const { householdId } = await householdForAction();
 
-    const running = await db()
-      .select({ id: t.syncLogs.id })
-      .from(t.syncLogs)
-      .where(and(eq(t.syncLogs.provider, "open-prices"), eq(t.syncLogs.status, "running"), gte(t.syncLogs.startedAt, new Date(Date.now() - 10 * 60_000))))
-      .limit(1);
-    if (running.length > 0) throw new UserFacingError("Une mise à jour des prix est déjà en cours. Réessayez dans quelques minutes.");
-
-    if (syncing) throw new UserFacingError("Une mise à jour des prix est déjà en cours. Réessayez dans quelques minutes.");
-    syncing = true;
+    const lockId = await acquireSyncLock();
+    if (!lockId) throw new UserFacingError("Une mise à jour des prix est déjà en cours. Réessayez dans quelques minutes.");
     let result;
+    let ok = false;
     try {
       result = await syncObservedPrices(
         db(),
@@ -63,6 +83,7 @@ export async function syncObservedPricesAction(input: unknown): Promise<ActionRe
           userAgent: `FOODLEK/0.1 (${env().OPEN_DATA_CONTACT || "usage personnel"})`,
         },
       );
+      ok = true;
     } catch (error) {
       if (error instanceof ObservedSyncError) throw new UserFacingError(error.message);
       if (error instanceof TypeError || (error instanceof Error && error.name === "TimeoutError")) {
@@ -70,7 +91,7 @@ export async function syncObservedPricesAction(input: unknown): Promise<ActionRe
       }
       throw error;
     } finally {
-      syncing = false;
+      await releaseSyncLock(lockId, ok ? "success" : "failed");
     }
 
     await db().update(t.householdSettings).set({ storeId: result.storeId }).where(eq(t.householdSettings.householdId, householdId));

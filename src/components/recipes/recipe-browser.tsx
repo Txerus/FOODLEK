@@ -4,6 +4,7 @@ import { ClockIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { type ReactNode, useMemo, useState } from "react";
 import { SingleChips } from "@/components/foodlek/forms/choice-chips";
+import { Button } from "@/components/ui/button";
 import { QualityBadge } from "@/components/foodlek/quality-badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
@@ -49,9 +50,13 @@ function normalize(s: string) {
   return s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 }
 
+const PAGE_SIZE = 24;
+
 export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  // 159 cards at once make a very long page on a phone: show them by pages of 24.
+  const [shown, setShown] = useState(PAGE_SIZE);
   const cheapThreshold = useMemo(() => {
     const costs = items.map((i) => i.costCents).filter((c): c is number => c !== null).sort((a, b) => a - b);
     return costs.length ? costs[Math.floor(costs.length / 3)] : null;
@@ -77,7 +82,8 @@ export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
       case "dessert":
         return i.tags.includes("dessert");
       case "snack":
-        return i.tags.includes("collation");
+        // Every "dessert ou goûter" recipe that is not a dessert is a goûter.
+        return i.tags.includes("collation") || (i.mealTypes.includes("snack") && !i.tags.includes("dessert"));
       default:
         return true;
     }
@@ -90,9 +96,22 @@ export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
           <InputGroupAddon>
             <SearchIcon aria-hidden />
           </InputGroupAddon>
-          <InputGroupInput value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Rechercher une recette" aria-label="Rechercher une recette" />
+          <InputGroupInput
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setShown(PAGE_SIZE);
+            }} placeholder="Rechercher une recette" aria-label="Rechercher une recette" />
         </InputGroup>
-        <SingleChips label="Filtrer les recettes" value={filter} onChange={setFilter} options={FILTERS} />
+        <SingleChips
+          label="Filtrer les recettes"
+          value={filter}
+          onChange={(f) => {
+            setFilter(f);
+            setShown(PAGE_SIZE);
+          }}
+          options={FILTERS}
+        />
       </div>
       <p className="text-sm text-muted-foreground" aria-live="polite">
         {visible.length} recette{visible.length > 1 ? "s" : ""}
@@ -106,7 +125,7 @@ export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
         </Empty>
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((i) => (
+          {visible.slice(0, shown).map((i) => (
             <li key={i.slug}>
               <Link
                 href={`/recipes/${i.slug}`}
@@ -144,6 +163,11 @@ export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
           ))}
         </ul>
       )}
+      {visible.length > shown ? (
+        <Button type="button" variant="outline" className="self-center" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+          Afficher plus de recettes ({visible.length - shown} restantes)
+        </Button>
+      ) : null}
     </div>
   );
 }

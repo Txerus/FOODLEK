@@ -154,27 +154,23 @@ export function portionsForSlot(
  */
 export function buildSessions(input: PlannerInput, ctx: EvalContext, assignment: Assignment): CookingSession[] {
   const sessions: CookingSession[] = [];
-  let previous: { slot: PlanSlot; session: CookingSession } | null = null;
+  // Dinner sessions by day: the next day's lunch can reuse one, whatever
+  // slots (breakfast, an empty slot…) sit between them in the week order.
+  const dinners = new Map<number, CookingSession>();
   for (const slot of ctx.orderedSlots) {
     const recipeId = assignment[slot.key];
-    if (!recipeId) {
-      previous = null;
-      continue;
-    }
+    if (!recipeId) continue;
     const recipe = ctx.recipesById.get(recipeId);
     if (!recipe) continue;
+    const dinner = slot.mealType === "lunch" ? dinners.get(slot.dayIndex - 1) : undefined;
     const canReuse =
       input.preferences.useLeftovers &&
-      previous !== null &&
-      previous.session.recipeId === recipeId &&
+      dinner !== undefined &&
+      dinner.recipeId === recipeId &&
       recipe.keepsWell &&
-      previous.slot.mealType === "dinner" &&
-      slot.mealType === "lunch" &&
-      slot.dayIndex === previous.slot.dayIndex + 1 &&
-      previous.session.servesSlotKeys.length === 1;
-    if (canReuse && previous) {
-      previous.session.servesSlotKeys.push(slot.key);
-      previous = { slot, session: previous.session };
+      dinner.servesSlotKeys.length === 1;
+    if (canReuse && dinner) {
+      dinner.servesSlotKeys.push(slot.key);
       continue;
     }
     const session: CookingSession = {
@@ -184,7 +180,7 @@ export function buildSessions(input: PlannerInput, ctx: EvalContext, assignment:
       activeMinutes: totalMinutes(recipe),
     };
     sessions.push(session);
-    previous = { slot, session };
+    if (slot.mealType === "dinner") dinners.set(slot.dayIndex, session);
   }
   return sessions;
 }

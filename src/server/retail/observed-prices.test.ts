@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { OBSERVED_PRICE_SPECS } from "@/data/open-prices-categories";
 import {
   cityCentre,
+  hasWord,
+  matchesSpec,
   isRetailerLocation,
   looseOffer,
   packFor,
@@ -163,5 +165,29 @@ describe("second audit", () => {
     expect(offer.pack.quantity).toBe(100);
     expect(offer.priceCents).toBe(4);
     expect(offer.unitPriceCents).toBe(40);
+  });
+});
+
+describe("review of 27/09/2026", () => {
+  it("reads fractions, chained lots and lots written the other way round", () => {
+    expect(parseQuantityText("1/2 kg")).toEqual({ quantity: 500, unit: "g" });
+    expect(parseQuantityText("250 g x 2")).toEqual({ quantity: 500, unit: "g" });
+    expect(parseQuantityText("2 paquets de 500 g")).toEqual({ quantity: 1000, unit: "g" });
+    expect(parseQuantityText("2 x 3 x 100 g")).toEqual({ quantity: 600, unit: "g" });
+    expect(parseQuantityText("100 g (2 x 50 g)")).toEqual({ quantity: 100, unit: "g" });
+  });
+
+  it("matches filter words as words, and respects 'non' / 'sans'", () => {
+    expect(hasWord("filets de poulet parfumes", "fume")).toBe(false);
+    expect(hasWord("yaourt a la grecque 10% mg", "0%")).toBe(false);
+    expect(hasWord("lait entier 3,0%", "0%")).toBe(false);
+    expect(hasWord("cacao en poudre non sucre", "sucre")).toBe(false);
+    expect(hasWord("confiture sans sucre ajoute", "sans sucre")).toBe(true);
+    expect(hasWord("olives noires denoyautees", "denoyaut")).toBe(true);
+  });
+
+  it("keeps unsweetened cocoa and drops canned lentils", () => {
+    expect(matchesSpec({ product_name: "Cacao en poudre non sucré", categories_tags: ["en:cocoa-powders"] }, OBSERVED_PRICE_SPECS["cacao-poudre"])).toBe(true);
+    expect(matchesSpec({ product_name: "Lentilles vertes au naturel 265 g égoutté", categories_tags: ["en:green-lentils"] }, OBSERVED_PRICE_SPECS["lentilles-vertes"])).toBe(false);
   });
 });

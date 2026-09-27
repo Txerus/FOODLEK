@@ -33,7 +33,8 @@ describe("summarizeBudget", () => {
 
   it("requires validation in strict mode", () => {
     const s = summarizeBudget({ ...base, mode: "strict", basketCents: 8600 });
-    expect(s.status).toBe("within_tolerance");
+    // No tolerance in strict mode: 3 % over is over.
+    expect(s.status).toBe("over");
     expect(s.requiresValidation).toBe(true);
   });
 

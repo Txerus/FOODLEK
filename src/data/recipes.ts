@@ -5,7 +5,10 @@
  * saisie ici : elle est recalculée à partir des ingrédients.
  */
 
-import type { Recipe } from "@/domain/catalog/types";
+import { checkRecipeDiet } from "@/domain/catalog/diets";
+import { indexIngredients, type IngredientIndex, type Recipe } from "@/domain/catalog/types";
+import { recipeNutritionPerServing } from "@/domain/recipes/nutrition";
+import { buildSeedIngredients } from "./ingredients";
 import { ing, recipe } from "./recipe-helpers";
 import { BREAKFAST_RECIPES } from "./recipes-breakfasts";
 import { DESSERT_RECIPES } from "./recipes-desserts";
@@ -959,4 +962,38 @@ const BASE_RECIPES: Recipe[] = [
 ];
 
 /** Every recipe of the catalogue. */
-export const RECIPES: Recipe[] = [...BASE_RECIPES, ...MAIN_RECIPES, ...BREAKFAST_RECIPES, ...DESSERT_RECIPES, ...SNACK_RECIPES, ...MORE_RECIPES];
+/** Thresholds behind the descriptive tags: a tag is only kept when the recipe meets it. */
+export const TAG_RULES = { quickMaxMinutes: 30, lightMaxKcal: 550, proteinMinG: 20 } as const;
+
+/**
+ * Tags typed by hand can drift from the recipe (a "léger" dish at 660 kcal, a
+ * "vegan" salad with honey). Tags that make a claim are checked against the
+ * computed figures and the diet rules, and dropped when they do not hold.
+ */
+export function consistentTags(recipe: Recipe, ingredients: IngredientIndex): Recipe {
+  const n = recipeNutritionPerServing(recipe, ingredients).nutrients;
+  const minutes = recipe.prepMinutes + recipe.cookMinutes;
+  const tags = recipe.tags.filter((tag) => {
+    switch (tag) {
+      case "rapide":
+        return minutes <= TAG_RULES.quickMaxMinutes;
+      case "leger":
+        return n.energyKcal <= TAG_RULES.lightMaxKcal;
+      case "proteine":
+        return n.proteinG >= TAG_RULES.proteinMinG;
+      case "vegan":
+        return checkRecipeDiet(recipe, ingredients, "vegan").compatible;
+      case "vegetarien":
+        return checkRecipeDiet(recipe, ingredients, "vegetarian").compatible;
+      default:
+        return true;
+    }
+  });
+  return tags.length === recipe.tags.length ? recipe : { ...recipe, tags };
+}
+
+const SEED_INGREDIENTS = indexIngredients(buildSeedIngredients());
+
+export const RECIPES: Recipe[] = [...BASE_RECIPES, ...MAIN_RECIPES, ...BREAKFAST_RECIPES, ...DESSERT_RECIPES, ...SNACK_RECIPES, ...MORE_RECIPES].map((r) =>
+  consistentTags(r, SEED_INGREDIENTS),
+);

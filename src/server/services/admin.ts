@@ -1,5 +1,5 @@
 import "server-only";
-import { count, desc, eq, sql } from "drizzle-orm";
+import { count, desc, eq, ne, sql } from "drizzle-orm";
 import { db } from "../db/client";
 import * as t from "../db/schema";
 
@@ -13,7 +13,7 @@ export async function adminOverview() {
       .from(t.ingredients)
       .where(sql`not exists (select 1 from ${t.productMappings} where ${t.productMappings.ingredientId} = ${t.ingredients.id} and ${t.productMappings.status} = 'active')`),
     database.select().from(t.retailers).orderBy(t.retailers.name),
-    database.select().from(t.syncLogs).orderBy(desc(t.syncLogs.startedAt)).limit(10),
+    database.select().from(t.syncLogs).where(ne(t.syncLogs.provider, "open-prices-lock")).orderBy(desc(t.syncLogs.startedAt)).limit(10),
     database.select().from(t.mappingIssues).where(eq(t.mappingIssues.status, "open")).limit(20),
     database.select().from(t.featureFlags).orderBy(t.featureFlags.key),
     database.select({ n: count() }).from(t.user),

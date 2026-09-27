@@ -80,6 +80,7 @@ export function SignOutButton() {
 
 export function DeleteAccountDialog() {
   const [confirmation, setConfirmation] = useState("");
+  const [password, setPassword] = useState("");
   const [pending, start] = useTransition();
   const router = useRouter();
   return (
@@ -98,14 +99,24 @@ export function DeleteAccountDialog() {
           <FieldLabel htmlFor="confirm-delete">Tapez SUPPRIMER pour confirmer</FieldLabel>
           <Input id="confirm-delete" value={confirmation} onChange={(e) => setConfirmation(e.target.value)} autoComplete="off" />
         </Field>
+        <Field>
+          <FieldLabel htmlFor="confirm-delete-password">Mot de passe</FieldLabel>
+          <Input
+            id="confirm-delete-password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+          />
+        </Field>
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>
           <AlertDialogAction
-            disabled={confirmation !== "SUPPRIMER" || pending}
+            disabled={confirmation !== "SUPPRIMER" || password.length === 0 || pending}
             onClick={(e) => {
               e.preventDefault();
               start(async () => {
-                const res = await deleteAccountAction({ confirmation });
+                const res = await deleteAccountAction({ confirmation, password });
                 if (res.ok) {
                   toast.success("Compte supprimé.");
                   router.replace("/");

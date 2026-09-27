@@ -1,10 +1,12 @@
 import "server-only";
+import { cache } from "react";
 import { and, desc, eq, inArray, isNull, ne, or } from "drizzle-orm";
 import { freshnessOf, type DataQuality } from "@/domain/common/data-quality";
 import type { OfferIndex, RetailOffer } from "@/domain/retail/types";
 import type { PurchaseUnit } from "@/domain/units/units";
 import { db } from "../db/client";
 import * as t from "../db/schema";
+import { getCatalog } from "./catalog";
 
 /**
  * Loads, for one store, every active ingredient → product mapping with the
@@ -149,17 +151,24 @@ export async function loadShoppingOffers(
   now = new Date(),
   householdId: string | null = null,
 ): Promise<OfferIndex> {
+  // Several parts of one page ask for the same offers: computed once per request and minute.
+  return loadShoppingOffersCached(storeId, householdId, Math.floor(now.getTime() / 60_000));
+}
+
+const loadShoppingOffersCached = cache(async (storeId: string | null, householdId: string | null, minute: number): Promise<OfferIndex> => {
+  const now = new Date(minute * 60_000);
   const store = storeId ? await getStore(storeId) : null;
   const primary = store ? await loadOffersForStore(store.id, now, householdId) : new Map<string, RetailOffer[]>();
   if (store?.isDemo) return primary;
 
-  const ingredientRows = await db().select({ id: t.ingredients.id }).from(t.ingredients);
-  let missing = ingredientRows.map((r) => r.id).filter((id) => !hasPrice(primary.get(id)));
-  if (missing.length === 0) return primary;
+  const { ingredients } = await getCatalog();
+  let missing = new Set(ingredients.map((i) => i.id).filter((id) => !hasPrice(primary.get(id))));
+  if (missing.size === 0) return primary;
   const index = new Map<string, RetailOffer[]>(primary as Map<string, RetailOffer[]>);
 
+  // Latest price of each (ingredient, product) pair only, computed by the database.
   const rows = await db()
-    .select({
+    .selectDistinctOn([t.productMappings.ingredientId, t.retailProducts.id], {
       ingredientId: t.productMappings.ingredientId,
       substitutionNote: t.productMappings.substitutionNote,
       product: t.retailProducts,
@@ -176,14 +185,15 @@ export async function loadShoppingOffers(
     .where(
       and(
         eq(t.productMappings.status, "active"),
-        inArray(t.productMappings.ingredientId, missing),
+        inArray(t.productMappings.ingredientId, [...missing]),
         store ? ne(t.retailPrices.storeId, store.id) : undefined,
         householdId
           ? or(isNull(t.retailProducts.householdId), eq(t.retailProducts.householdId, householdId))
           : isNull(t.retailProducts.householdId),
       ),
     )
-    .orderBy(desc(t.retailPrices.fetchedAt));
+    .orderBy(t.productMappings.ingredientId, t.retailProducts.id, desc(t.retailPrices.fetchedAt));
+  rows.sort((a, b) => b.price.fetchedAt.getTime() - a.price.fetchedAt.getTime());
 
   const toOffer = (row: (typeof rows)[number], fallback: "other_store" | "demo"): RetailOffer => ({
     productId: row.product.id,
@@ -221,16 +231,17 @@ export async function loadShoppingOffers(
   const fill = (candidates: typeof rows, fallback: "other_store" | "demo") => {
     const seen = new Set<string>();
     for (const row of candidates) {
-      if (row.price.priceCents === null || !missing.includes(row.ingredientId)) continue;
-      // Latest price per product (rows are sorted by date, newest first).
-      if (seen.has(row.product.id)) continue;
-      seen.add(row.product.id);
+      if (row.price.priceCents === null || !missing.has(row.ingredientId)) continue;
+      // One product can stand for several ingredients: deduplicate per pair.
+      const key = `${row.ingredientId}:${row.product.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
       const list = index.get(row.ingredientId)?.filter((o) => o.fallback) ?? [];
       if (list.length >= FALLBACK_PRODUCTS_PER_INGREDIENT) continue;
       list.push(toOffer(row, fallback));
       index.set(row.ingredientId, list);
     }
-    missing = missing.filter((id) => !hasPrice(index.get(id)));
+    missing = new Set([...missing].filter((id) => !hasPrice(index.get(id))));
   };
   fill(
     rows.filter((r) => !r.isDemo),
@@ -241,7 +252,7 @@ export async function loadShoppingOffers(
     "demo",
   );
   return index;
-}
+});
 
 /**
  * A price typed in by the household for an ingredient ("I paid 2,35 € for

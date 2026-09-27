@@ -18,7 +18,7 @@ export default async function NutritionPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Besoins estimés"
+        title="Nutrition : besoins estimés"
         description="Repères calculés par des formules publiées, pour ajuster les portions. Ce ne sont pas des prescriptions."
       />
       <Alert>

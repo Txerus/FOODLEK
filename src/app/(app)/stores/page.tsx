@@ -33,6 +33,10 @@ export default async function StoresPage() {
   ]);
   const observedById = new Map(observed.map((s) => [s.id, s]));
   const retailersWithObserved = new Set(observed.map((s) => s.retailerId));
+  // The same explanation applies to several retailers: shown once, below the list.
+  const noteCounts = new Map<string, number>();
+  for (const r of retailers) if (r.notes) noteCounts.set(r.notes, (noteCounts.get(r.notes) ?? 0) + 1);
+  const sharedNotes = [...noteCounts].filter(([, n]) => n > 1).map(([note]) => note);
 
   return (
     <div className="flex flex-col gap-8">
@@ -104,11 +108,23 @@ export default async function StoresPage() {
                   <span className="font-medium">{r.name}</span>
                   <Badge variant={STATUS[status]?.variant ?? "outline"}>{STATUS[status]?.label ?? status}</Badge>
                 </div>
-                {r.notes ? <p className="text-sm text-muted-foreground">{r.notes}</p> : null}
+                {r.notes && !sharedNotes.includes(r.notes) ? <p className="text-sm text-muted-foreground">{r.notes}</p> : null}
               </li>
             );
           })}
         </ul>
+        {sharedNotes.map((note) => (
+          <p key={note} className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {retailers
+                .filter((r) => r.notes === note)
+                .map((r) => r.name)
+                .join(", ")}{" "}
+              :
+            </span>{" "}
+            {note}
+          </p>
+        ))}
       </section>
 
       <section className="flex flex-col gap-2 text-sm text-muted-foreground">

@@ -31,8 +31,8 @@ test("parcours mobile avec le compte de démonstration", async ({ page }) => {
     await noHorizontalOverflow(page);
   }
 
-  const tabbar = page.getByRole("navigation", { name: "Navigation principale" }).last();
-  await tabbar.getByRole("link", { name: "Courses" }).click();
+  // The tab bar on a phone, the top navigation on a desktop (hidden navs are ignored).
+  await page.getByRole("navigation").getByRole("link", { name: "Courses", exact: true }).first().click();
   await expect(page).toHaveURL(/\/shopping/);
   const first = page.locator("main ul.surface > li").first().getByRole("checkbox");
   const wasChecked = await first.isChecked();

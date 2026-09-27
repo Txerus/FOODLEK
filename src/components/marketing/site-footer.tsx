@@ -17,6 +17,7 @@ const COLUMNS = [
       { href: "/recettes", label: "Toutes les recettes" },
       { href: "/guides/budget-courses", label: "Tenir un budget courses" },
       { href: "/guides/meal-prep", label: "Cuisiner à l'avance" },
+      { href: "/guides", label: "Tous les guides" },
     ],
   },
   {

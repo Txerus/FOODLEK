@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
@@ -27,12 +27,19 @@ export function ObservedPricesForm({
   const [city, setCity] = useState(defaultCity);
   const [radius, setRadius] = useState("30");
   const [result, setResult] = useState<ObservedSyncSummary | null>(null);
+  const [cityError, setCityError] = useState<string | null>(null);
 
   return (
     <form
       className="flex flex-col gap-4"
+      noValidate
       onSubmit={(e) => {
         e.preventDefault();
+        if (city.trim().length < 2) {
+          setCityError("Indiquez une ville (par exemple Annecy).");
+          return;
+        }
+        setCityError(null);
         setResult(null);
         start(async () => {
           const res = await syncObservedPricesAction({ retailerSlug, city, radiusKm: Number(radius) });
@@ -64,17 +71,21 @@ export function ObservedPricesForm({
             </SelectContent>
           </Select>
         </Field>
-        <Field>
+        <Field data-invalid={Boolean(cityError)}>
           <FieldLabel htmlFor="city">Ville</FieldLabel>
           <Input
             id="city"
             value={city}
-            onChange={(e) => setCity(e.target.value)}
+            onChange={(e) => {
+              setCity(e.target.value);
+              if (cityError) setCityError(null);
+            }}
             placeholder="Annecy"
             autoComplete="address-level2"
-            required
-            minLength={2}
+            aria-invalid={Boolean(cityError)}
+            aria-describedby={cityError ? "city-error" : undefined}
           />
+          {cityError ? <FieldError id="city-error">{cityError}</FieldError> : null}
         </Field>
         <Field>
           <FieldLabel htmlFor="radius">Rayon</FieldLabel>

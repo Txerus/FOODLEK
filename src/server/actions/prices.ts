@@ -8,10 +8,11 @@ import { runAction, UserFacingError, type ActionResult } from "./result";
 
 const input = z.object({
   ingredientId: z.string().min(1).max(100),
-  priceEuros: z.number().positive("Indiquez un prix").max(500),
-  packQuantity: z.number().positive("Indiquez la quantité du paquet").max(100_000),
+  priceEuros: z.number().min(0.01, "Indiquez un prix").max(500),
+  // At least 1 g / 1 ml / 0,1 pièce: a tiny quantity would give an absurd price per kg.
+  packQuantity: z.number().min(0.1, "Indiquez la quantité du paquet").max(100_000),
   packUnit: z.enum(["g", "ml", "piece"]),
-});
+}).refine((v) => v.packUnit === "piece" || v.packQuantity >= 1, { path: ["packQuantity"], message: "Au moins 1 g ou 1 ml" });
 
 const UNIT_LABEL = { g: "g", ml: "ml", piece: "pièce(s)" } as const;
 

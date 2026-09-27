@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Diet, EaterConstraints } from "@/domain/catalog/diets";
 import type { Allergen, Equipment, MealType } from "@/domain/catalog/types";
 import type { BudgetMode } from "@/domain/budget/budget";
@@ -138,6 +138,27 @@ export async function loadHouseholdContext(householdId: string): Promise<Househo
     members: members.map(toMember),
     pantry: pantry.map((p) => ({ ingredientId: p.ingredientId, quantity: p.quantity })),
   };
+}
+
+/**
+ * The user's household, created on first use. Serialised per user so that
+ * two concurrent saves (autosave + submit) never create two households.
+ */
+export async function ensureHouseholdForUser(userId: string): Promise<string> {
+  return db().transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`household:${userId}`}))`);
+    const [existing] = await tx
+      .select({ householdId: t.householdMemberships.householdId })
+      .from(t.householdMemberships)
+      .where(eq(t.householdMemberships.userId, userId))
+      .orderBy(asc(t.householdMemberships.createdAt))
+      .limit(1);
+    if (existing) return existing.householdId;
+    const id = newId("hh");
+    await tx.insert(t.households).values({ id, name: "Mon foyer" });
+    await tx.insert(t.householdMemberships).values({ id: newId("hm"), householdId: id, userId, role: "owner" });
+    return id;
+  });
 }
 
 export async function createHouseholdForUser(userId: string, name = "Mon foyer"): Promise<string> {

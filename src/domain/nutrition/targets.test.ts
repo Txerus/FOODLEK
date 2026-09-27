@@ -67,6 +67,12 @@ describe("computeTargets", () => {
     expect(t.energyKcal).toBeNull();
   });
 
+  it("protects someone who may still be 17 (only the birth year is known)", () => {
+    const t = computeTargets({ ...alex, birthYear: 2008, goal: "lose" }, new Date("2026-01-05T12:00:00Z"));
+    expect(t.mode).toBe("protected");
+    expect(t.effectiveGoal).toBe("none");
+  });
+
   it("never applies weight loss to a minor", () => {
     const teen: MemberProfile = { ...alex, birthYear: 2011, goal: "lose" };
     const t = computeTargets(teen, TODAY);

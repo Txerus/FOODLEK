@@ -210,7 +210,18 @@ describe("observed retailer prices", () => {
       fetchImpl,
       delayMs: 0,
     };
+    // A price typed in by a household for this store must survive the new sync.
+    const storeId = "store_op_carrefour_annecy_30";
+    await db()
+      .insert(t.retailProducts)
+      .values({ id: "prd_manual_test_quinoa", retailerId: "ret_carrefour", name: "Quinoa", packLabel: "500 g", packQuantity: 500, packUnit: "g", provider: "manual" })
+      .onConflictDoNothing();
+    await db().delete(t.retailPrices).where(eq(t.retailPrices.id, "price_manual_test_quinoa"));
+    await db()
+      .insert(t.retailPrices)
+      .values({ id: "price_manual_test_quinoa", productId: "prd_manual_test_quinoa", storeId, priceCents: 349, unitPriceCents: 698, availability: "available", fetchedAt: new Date(), provider: "manual", quality: "RECENT" });
     const again = await syncObservedPrices(db(), ingredients, options);
+    expect(await db().select().from(t.retailPrices).where(eq(t.retailPrices.id, "price_manual_test_quinoa"))).toHaveLength(1);
     const offers = await loadOffersForStore(again.storeId);
     expect(offers.get("ing_riz-long")).toHaveLength(1);
     // The photo found last time is kept without a new lookup.

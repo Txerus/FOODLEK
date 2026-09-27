@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, ne } from "drizzle-orm";
 import { z } from "zod";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { OBSERVED_PRICE_SPECS } from "@/data/open-prices-categories";
@@ -329,8 +329,9 @@ export async function syncObservedPrices(
     await tx
       .insert(t.syncLogs)
       .values({ id: logId, provider: "open-prices", retailerId: retailer.id, storeId, status: "running" });
-    // The store's prices are replaced by the current observations.
-    await tx.delete(t.retailPrices).where(eq(t.retailPrices.storeId, storeId));
+    // The store's observed prices are replaced by the current observations;
+    // prices typed in by households for this store are theirs and stay.
+    await tx.delete(t.retailPrices).where(and(eq(t.retailPrices.storeId, storeId), ne(t.retailPrices.provider, "manual")));
 
     for (const ing of ingredients) {
       const spec = OBSERVED_PRICE_SPECS[ing.slug];

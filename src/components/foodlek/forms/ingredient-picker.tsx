@@ -33,7 +33,14 @@ export function IngredientPicker({
   const matches = useMemo(() => {
     const q = normalize(query.trim());
     if (!q) return [];
-    return ingredients.filter((i) => !value.includes(i.id) && normalize(i.name).includes(q)).slice(0, 8);
+    // Names starting with the query first ("ri" → Riz…), then a word starting with it, then anywhere.
+    const rank = (name: string) => (name.startsWith(q) ? 0 : name.split(/[\s'’-]+/).some((w) => w.startsWith(q)) ? 1 : 2);
+    return ingredients
+      .filter((i) => !value.includes(i.id) && normalize(i.name).includes(q))
+      .map((i) => ({ i, r: rank(normalize(i.name)) }))
+      .sort((a, b) => a.r - b.r || a.i.name.localeCompare(b.i.name, "fr"))
+      .slice(0, 8)
+      .map(({ i }) => i);
   }, [ingredients, query, value]);
 
   return (

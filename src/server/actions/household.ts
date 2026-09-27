@@ -6,7 +6,7 @@ import { householdSetupSchema } from "@/lib/validation/household";
 import { AccessDeniedError, getCurrentUser, getHouseholdIdForUser, householdForAction } from "../auth/access";
 import { getCatalog } from "../services/catalog";
 import {
-  createHouseholdForUser,
+  ensureHouseholdForUser,
   markOnboardingComplete,
   saveHouseholdSetup,
   saveOnboardingDraft,
@@ -20,7 +20,7 @@ const MAX_DRAFT_BYTES = 64 * 1024;
 async function ensureHousehold(): Promise<string> {
   const user = await getCurrentUser();
   if (!user) throw new AccessDeniedError("Connectez-vous pour continuer.");
-  return (await getHouseholdIdForUser(user.id)) ?? (await createHouseholdForUser(user.id));
+  return (await getHouseholdIdForUser(user.id)) ?? (await ensureHouseholdForUser(user.id));
 }
 
 /** Autosave of the onboarding wizard. */
@@ -52,7 +52,7 @@ export async function completeOnboardingAction(input: unknown): Promise<ActionRe
     const householdId = await ensureHousehold();
     await saveHouseholdSetup(householdId, setup);
     await markOnboardingComplete(householdId);
-    const planId = await generatePlan(householdId, planningWeekStart(new Date()));
+    const { planId } = await generatePlan(householdId, planningWeekStart(new Date()));
     revalidatePath("/", "layout");
     return { data: { planId } };
   });

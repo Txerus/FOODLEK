@@ -47,7 +47,8 @@ export function nutritionOfItems(
     qualities.push(ingredient.composition.quality);
     sources.add(`${ingredient.composition.sourceLabel} ${ingredient.composition.sourceVersion}`);
   }
-  const quality = missing.length > 0 ? "ESTIMATED" : worstQuality(qualities);
+  // A missing value makes the total an estimate, but never better than its worst part (DEMO stays DEMO).
+  const quality = missing.length > 0 ? worstQuality([...qualities, "ESTIMATED"]) : worstQuality(qualities);
   return {
     nutrients: parts.length ? sumNutrients(parts) : ZERO_NUTRIENTS,
     quality,

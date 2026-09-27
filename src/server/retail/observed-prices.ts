@@ -135,18 +135,39 @@ const UNIT_FACTORS: Record<string, { unit: "g" | "ml"; factor: number }> = {
   l: { unit: "ml", factor: 1000 },
 };
 
-/** "4 x 125 g", "500g", "1,5 kg", "75 cl" → total in g or ml. */
+const UNIT_RE = "(kg|gr|g|cl|ml|l)\\b";
+const NUM_RE = "(\\d+(?:[.,]\\d+)?)";
+const decimal = (s: string) => Number.parseFloat(s.replace(",", "."));
+
+/**
+ * Total quantity of a pack label, in g or ml: "500g", "1,5 kg", "75 cl",
+ * "4 x 125 g", "2 x 3 x 100 g", "250 g x 2", "2 paquets de 500 g", "1/2 kg".
+ */
 export function parseQuantityText(text: string): { quantity: number; unit: "g" | "ml" } | null {
   const t = normalizeText(text).replace(/\s+/g, " ");
-  const multi = t.match(/(\d+)\s*[x×*]\s*(\d+(?:[.,]\d+)?)\s*(kg|gr|g|cl|ml|l)\b/);
-  if (multi) {
-    const u = UNIT_FACTORS[multi[3]];
-    return { quantity: Number(multi[1]) * Number.parseFloat(multi[2].replace(",", ".")) * u.factor, unit: u.unit };
+  const result = (quantity: number, unitKey: string) => {
+    const u = UNIT_FACTORS[unitKey];
+    return quantity > 0 && Number.isFinite(quantity) ? { quantity: quantity * u.factor, unit: u.unit } : null;
+  };
+  // "1/2 kg": a fraction, not "2 kg".
+  const fraction = t.match(new RegExp(`(\\d+)\\s*/\\s*(\\d+)\\s*${UNIT_RE}`));
+  if (fraction) return Number(fraction[2]) > 0 ? result(Number(fraction[1]) / Number(fraction[2]), fraction[3]) : null;
+  // "4 x 125 g", "2 x 3 x 100 g": every count multiplies.
+  const chain = t.match(new RegExp(`((?:\\d+\\s*[x×*]\\s*)+)${NUM_RE}\\s*${UNIT_RE}`));
+  if (chain) {
+    const counts = chain[1].match(/\d+/g)?.map(Number) ?? [];
+    return result(counts.reduce((a, b) => a * b, 1) * decimal(chain[2]), chain[3]);
   }
-  const single = t.match(/(\d+(?:[.,]\d+)?)\s*(kg|gr|g|cl|ml|l)\b/);
-  if (!single) return null;
-  const u = UNIT_FACTORS[single[2]];
-  return { quantity: Number.parseFloat(single[1].replace(",", ".")) * u.factor, unit: u.unit };
+  // "250 g x 2".
+  const after = t.match(new RegExp(`${NUM_RE}\\s*${UNIT_RE}\\s*[x×*]\\s*(\\d{1,2})\\b(?!\\s*(?:[.,]\\d)?\\s*${UNIT_RE})`));
+  if (after) return result(decimal(after[1]) * Number(after[3]), after[2]);
+  // "2 paquets de 500 g", "4 tranches de 40 g".
+  const containers = t.match(
+    new RegExp(`(\\d{1,2})\\s*(?:paquets?|sachets?|pots?|boites?|briques?|bouteilles?|barquettes?|tranches?|portions?|canettes?|flacons?)\\s+de\\s+${NUM_RE}\\s*${UNIT_RE}`),
+  );
+  if (containers) return result(Number(containers[1]) * decimal(containers[2]), containers[3]);
+  const single = t.match(new RegExp(`${NUM_RE}\\s*${UNIT_RE}`));
+  return single ? result(decimal(single[1]), single[2]) : null;
 }
 
 /** Drained weight stated on a can: "400 g (265 g égoutté)", "Poids net égoutté : 140 g". */
@@ -217,13 +238,36 @@ export function packFor(product: Product, purchaseUnit: PurchaseUnit, measures: 
 // Matching and aggregation
 // ---------------------------------------------------------------------------
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Whether a label contains a word (or word start: "denoyaut" matches
+ * "dénoyautées"), never inside another word or number: "fume" is not in
+ * "parfumé", "0%" is not in "10%" or "3,0%". A word negated just before
+ * ("non sucré", "sans sucres ajoutés") does not count, unless the filter
+ * itself is the negation ("sans sucre").
+ */
+export function hasWord(label: string, word: string): boolean {
+  const w = normalizeText(word);
+  const re = new RegExp(`(?<![a-z0-9]|\\d[.,])${escapeRegExp(w)}`, "g");
+  const negatable = !/^(non|sans)\b/.test(w);
+  for (const m of label.matchAll(re)) {
+    const before = label.slice(0, m.index);
+    if (negatable && /(?:^|[^a-z])(?:non|sans)\s+$/.test(before)) continue;
+    return true;
+  }
+  return false;
+}
+
 export function matchesSpec(product: Product, spec: ObservedPriceSpec): boolean {
   const tags = new Set(product.categories_tags ?? []);
   if (!spec.productTags.some((t) => tags.has(t))) return false;
   if (spec.excludeTags?.some((t) => tags.has(t))) return false;
   const name = normalizeText(`${product.product_name ?? ""} ${product.quantity ?? ""}`);
-  if (spec.excludeWords?.some((w) => name.includes(normalizeText(w)))) return false;
-  if (spec.requireWords && !spec.requireWords.some((w) => name.includes(normalizeText(w)))) return false;
+  if (spec.excludeWords?.some((w) => hasWord(name, w))) return false;
+  if (spec.requireWords && !spec.requireWords.some((w) => hasWord(name, w))) return false;
   return true;
 }
 

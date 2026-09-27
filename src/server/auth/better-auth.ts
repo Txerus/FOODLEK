@@ -52,7 +52,8 @@ function createAuth() {
       additionalFields: {
         role: { type: "string", required: false, defaultValue: "user", input: false },
       },
-      deleteUser: { enabled: true },
+      // Account deletion goes through deleteAccountAction only, which also
+      // erases the household data (Better Auth's endpoint would not).
     },
     session: {
       expiresIn: 60 * 60 * 24 * 30,

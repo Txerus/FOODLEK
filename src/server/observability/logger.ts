@@ -39,7 +39,23 @@ export const logger = {
   error: (message: string, context?: Record<string, unknown>) => write("error", message, context),
 };
 
+/**
+ * What to log about an error. Database errors carry the query and its bound
+ * values (names, weights…) in their message: only their name and SQL error
+ * code are kept.
+ */
 export function errorContext(error: unknown): Record<string, unknown> {
-  if (error instanceof Error) return { errorName: error.name, errorMessage: error.message };
-  return { error: String(error) };
+  if (error instanceof Error) {
+    const own = (error as unknown as { code?: unknown }).code;
+    const cause = (error as { cause?: { code?: unknown } }).cause;
+    const dbCode = typeof own === "string" ? own : typeof cause?.code === "string" ? cause.code : undefined;
+    const isQuery = error.name === "DrizzleQueryError" || error.message.startsWith("Failed query") || error.name === "PostgresError";
+    return {
+      // Not "errorName": keys containing "name" are redacted.
+      errorType: error.name,
+      errorMessage: isQuery ? "database error (details hidden)" : error.message.split("\nparams:")[0].slice(0, 300),
+      ...(dbCode ? { dbCode } : {}),
+    };
+  }
+  return { error: String(error).slice(0, 300) };
 }

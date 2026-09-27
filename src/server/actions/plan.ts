@@ -25,9 +25,13 @@ function revalidateApp() {
 export async function regeneratePlanAction(): Promise<ActionResult<{ planId: string }>> {
   return runAction("regeneratePlan", async () => {
     const { householdId } = await householdForAction();
-    const planId = await generatePlan(householdId, planningWeekStart(new Date()));
+    const { planId, droppedLocks } = await generatePlan(householdId, planningWeekStart(new Date()));
     revalidateApp();
-    return { data: { planId }, message: "Nouvelle semaine générée. Les repas épinglés ont été conservés." };
+    const message =
+      droppedLocks > 0
+        ? `Nouvelle semaine générée. ${droppedLocks} repas épinglé(s) ne convenant plus à votre foyer (régime, allergie ou aliment refusé) ont été remplacé(s).`
+        : "Nouvelle semaine générée. Les repas épinglés ont été conservés.";
+    return { data: { planId }, message };
   });
 }
 

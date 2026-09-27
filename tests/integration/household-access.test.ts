@@ -44,7 +44,7 @@ beforeAll(async () => {
   await saveHouseholdSetup(householdB, setup({ members: [{ ...defaultMember(0), displayName: "Solo" }] }));
   await markOnboardingComplete(householdA);
   await markOnboardingComplete(householdB);
-  planA = await generatePlan(householdA, planningWeekStart(new Date()));
+  planA = (await generatePlan(householdA, planningWeekStart(new Date()))).planId;
 });
 
 describe("household data", () => {

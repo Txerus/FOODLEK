@@ -19,12 +19,17 @@ export interface PantryRow {
 
 function QuantityInput({ row }: { row: PantryRow }) {
   const router = useRouter();
-  const [value, setValue] = useState(row.quantity === null ? "" : String(row.quantity));
+  const saved = row.quantity === null ? "" : String(row.quantity);
+  const [value, setValue] = useState(saved);
+  const [invalid, setInvalid] = useState(false);
   const [pending, start] = useTransition();
   function save() {
     const quantity = value.trim() === "" ? null : Number(value.replace(",", "."));
     if (quantity !== null && (!Number.isFinite(quantity) || quantity < 0)) {
-      toast.error("Quantité invalide.");
+      // Put back the saved value rather than leaving an invalid one on screen.
+      toast.error(`Quantité invalide pour ${row.name} : valeur précédente conservée.`);
+      setValue(saved);
+      setInvalid(false);
       return;
     }
     if (quantity === row.quantity) return;
@@ -41,7 +46,12 @@ function QuantityInput({ row }: { row: PantryRow }) {
         placeholder="Assez"
         value={value}
         disabled={pending}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          const n = Number(e.target.value.replace(",", "."));
+          setInvalid(e.target.value.trim() !== "" && (!Number.isFinite(n) || n < 0));
+        }}
+        aria-invalid={invalid}
         onBlur={save}
         onKeyDown={(e) => e.key === "Enter" && save()}
         aria-label={`Quantité de ${row.name} (laisser vide pour « j'en ai assez »)`}
