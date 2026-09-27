@@ -33,6 +33,7 @@ export function WeightGoalFields({ index }: { index: number }) {
       mode: m.profileMode,
       sex: m.sex,
       birthYear: m.birthYear,
+      birthMonth: m.birthMonth,
       heightCm: m.heightCm,
       weightKg: m.weightKg,
       activity: m.activity,

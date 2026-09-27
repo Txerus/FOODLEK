@@ -12,6 +12,7 @@ import { newId } from "../ids";
 import { logger } from "../observability/logger";
 import { ObservedSyncError, syncObservedPrices } from "../retail/observed-sync";
 import { FRENCH_RETAILERS } from "../retail/registry";
+import { assertWithinLimit } from "../rate-limit";
 import { runAction, UserFacingError, type ActionResult } from "./result";
 
 const syncInput = z.object({
@@ -66,6 +67,7 @@ export async function syncObservedPricesAction(input: unknown): Promise<ActionRe
   return runAction("syncObservedPrices", async () => {
     const data = syncInput.parse(input);
     const { householdId } = await householdForAction();
+    await assertWithinLimit("syncPrices", householdId);
 
     const lockId = await acquireSyncLock();
     if (!lockId) throw new UserFacingError("Une mise à jour des prix est déjà en cours. Réessayez dans quelques minutes.");

@@ -18,6 +18,7 @@ import {
 } from "@/domain/catalog/types";
 import type { CompositionSource } from "@/domain/nutrition/nutrients";
 import type { PurchaseUnit, Unit } from "@/domain/units/units";
+import { WHOLE_PIECE_SLUGS } from "@/data/ingredients";
 import { db } from "../db/client";
 import * as t from "../db/schema";
 
@@ -85,6 +86,7 @@ async function loadFromDb(): Promise<Catalog> {
       cookedYield: row.cookedYield,
       proteinFamily: (row.proteinFamily as ProteinFamily | null) ?? null,
       pieceLabel: row.pieceLabel ?? null,
+      wholePieces: WHOLE_PIECE_SLUGS.has(row.slug),
       photo: row.imageUrl ? { url: row.imageUrl, credit: row.imageCredit, sourceUrl: row.imageSourceUrl } : null,
     };
   });

@@ -30,6 +30,8 @@ export interface MemberProfile {
   mode: "detailed" | "simplified";
   sex: Sex | null;
   birthYear: number | null;
+  /** 1–12, optional: without it the age is only known to within a year. */
+  birthMonth?: number | null;
   heightCm: number | null;
   weightKg: number | null;
   activity: ActivityLevel;
@@ -80,6 +82,19 @@ export interface NutritionTargets {
 
 export function ageFromBirthYear(birthYear: number, today: Date): number {
   return today.getFullYear() - birthYear;
+}
+
+/**
+ * Youngest and oldest possible age. With the year only, the birthday may or
+ * may not have passed; with the month, only during the birthday month.
+ */
+export function ageRange(birthYear: number, birthMonth: number | null | undefined, today: Date): { min: number; max: number } {
+  const max = today.getFullYear() - birthYear;
+  if (!birthMonth) return { min: max - 1, max };
+  const month = today.getMonth() + 1;
+  if (month > birthMonth) return { min: max, max };
+  if (month < birthMonth) return { min: max - 1, max: max - 1 };
+  return { min: max - 1, max };
 }
 
 /**
@@ -143,7 +158,8 @@ export function computeTargets(
   const warnings: string[] = [];
   const explanation: string[] = [];
 
-  const age = profile.birthYear !== null ? ageFromBirthYear(profile.birthYear, today) : null;
+  const range = profile.birthYear !== null ? ageRange(profile.birthYear, profile.birthMonth, today) : null;
+  const age = range ? range.max : null;
 
   if (profile.specialSituations.length > 0) {
     for (const s of profile.specialSituations) warnings.push(PROTECTED_MESSAGES[s]);
@@ -152,9 +168,9 @@ export function computeTargets(
     ]);
   }
 
-  // Only the birth year is known: someone born 18 years ago may still be 17
-  // until their birthday, so they stay protected for that whole year.
-  if (age !== null && age - 1 < 18) {
+  // Protected as long as the person may still be under 18 (without the birth
+  // month, for the whole year of their 18th birthday).
+  if (range !== null && range.min < 18) {
     warnings.push(
       "Les besoins des moins de 18 ans dépendent de la croissance. Nous ne calculons pas d'objectif calorique et n'appliquons jamais de restriction : les portions suivent l'appétit.",
     );

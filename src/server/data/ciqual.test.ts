@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeXml, parseAlim, parseCiqualValue, parseCompo } from "./ciqual";
+import { decodeXml, mappingMatches, parseAlim, parseCiqualValue, parseCompo, suggestCiqualMatches } from "./ciqual";
 
 // Fixture in the Ciqual XML format; the values are made up for the test.
 const ALIM = `<?xml version="1.0" encoding="windows-1252"?>
@@ -39,5 +39,26 @@ describe("Ciqual parsing", () => {
   it("decodes windows-1252", () => {
     const bytes = new Uint8Array([...new TextEncoder().encode('<?xml version="1.0" encoding="windows-1252"?><a>'), 0xe9, ...new TextEncoder().encode("</a>")]);
     expect(decodeXml(bytes)).toContain("<a>é</a>");
+  });
+});
+
+describe("Ciqual suggestions", () => {
+  const foods = [
+    { code: "1", nameFr: "Poulet, filet, sans peau, cru" },
+    { code: "2", nameFr: "Poulet, filet, sans peau, rôti" },
+    { code: "3", nameFr: "Blanquette de veau, plat préparé" },
+    { code: "4", nameFr: "Concombre, pulpe et peau, cru" },
+  ];
+
+  it("suggests the closest raw food first, and never links by itself", () => {
+    expect(suggestCiqualMatches("Blanc de poulet", foods)[0].code).toBe("1");
+    expect(suggestCiqualMatches("Concombre", foods).map((f) => f.code)).toEqual(["4"]);
+    expect(suggestCiqualMatches("Durian", foods)).toEqual([]);
+  });
+
+  it("refuses a mapping whose checked name no longer matches the table", () => {
+    expect(mappingMatches({ code: "1", name: "Poulet, filet, sans peau, cru" }, foods[0])).toBe(true);
+    expect(mappingMatches({ code: "1", name: "Poulet, cuisse, crue" }, foods[0])).toBe(false);
+    expect(mappingMatches({ code: "9", name: "x" }, undefined)).toBe(false);
   });
 });

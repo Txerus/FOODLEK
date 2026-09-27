@@ -93,7 +93,7 @@ export default async function NutritionPage() {
         </p>
         <p>
           Valeurs nutritionnelles des aliments : <Link href="/sources" className="underline underline-offset-4">sources des données</Link>.{" "}
-          <Link href="/household" className="underline underline-offset-4">Modifier les profils</Link>
+          <Link href="/household?section=profiles" className="underline underline-offset-4">Modifier les profils</Link>
         </p>
       </section>
     </div>

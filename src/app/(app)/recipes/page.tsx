@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageHeader } from "@/components/foodlek/page-header";
 import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { RecipeBrowser, type RecipeListItem } from "@/components/recipes/recipe-browser";
+import { isRecipeFilter } from "@/components/recipes/recipe-filters";
 import { totalMinutes } from "@/domain/catalog/types";
 import { requireHousehold } from "@/server/auth/access";
 import { getCatalog } from "@/server/services/catalog";
@@ -9,8 +10,11 @@ import { listRecipesForHousehold } from "@/server/services/recipes";
 
 export const metadata: Metadata = { title: "Recettes" };
 
-export default async function RecipesPage() {
+export default async function RecipesPage({ searchParams }: PageProps<"/recipes">) {
   const { householdId } = await requireHousehold();
+  const params = await searchParams;
+  const initialQuery = typeof params.q === "string" ? params.q.slice(0, 80) : "";
+  const initialFilter = isRecipeFilter(params.filtre) ? params.filtre : "all";
   const [{ cards }, catalog] = await Promise.all([listRecipesForHousehold(householdId), getCatalog()]);
   const items: RecipeListItem[] = cards.map((c) => ({
     slug: c.recipe.slug,
@@ -35,7 +39,7 @@ export default async function RecipesPage() {
         title="Recettes"
         description="Des recettes maison, structurées pour être adaptées à chaque personne. Leurs valeurs nutritionnelles sont recalculées à partir des ingrédients."
       />
-      <RecipeBrowser items={items} />
+      <RecipeBrowser items={items} initialQuery={initialQuery} initialFilter={initialFilter} />
     </div>
   );
 }

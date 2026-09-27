@@ -55,7 +55,7 @@ export default async function PlanningPage() {
         eyebrow={`Du ${formatDay(view.weekStart).toLowerCase()} au ${formatDay(addDays(view.weekStart, 6)).toLowerCase()}`}
         title="Votre semaine"
         description="Un plat par repas pour tout le foyer, des portions adaptées à chacun. Chaque modification recalcule les courses et le budget."
-        actions={<RegenerateButton />}
+        actions={<RegenerateButton pinnedCount={view.lockedKeys.size} />}
       />
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">

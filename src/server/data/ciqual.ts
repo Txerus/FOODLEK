@@ -83,3 +83,48 @@ export function decodeXml(bytes: Uint8Array): string {
   const enc = head.match(/encoding="([^"]+)"/i)?.[1]?.toLowerCase() ?? "utf-8";
   return new TextDecoder(enc === "windows-1252" || enc === "iso-8859-1" ? "windows-1252" : "utf-8").decode(bytes);
 }
+
+function words(s: string): string[] {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/œ/g, "oe")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length > 1);
+}
+
+/**
+ * Ciqual foods whose name is closest to an ingredient name, best first:
+ * a suggestion for a person to check, never applied automatically.
+ * Raw foods ("cru") are favoured, prepared dishes pushed down.
+ */
+export function suggestCiqualMatches(ingredientName: string, foods: readonly CiqualFood[], limit = 5): CiqualFood[] {
+  const wanted = words(ingredientName).filter((w) => !["de", "du", "des", "la", "le", "les", "au", "aux", "et"].includes(w));
+  if (wanted.length === 0) return [];
+  const scored = foods
+    .map((food) => {
+      const name = words(food.nameFr);
+      const hits = wanted.filter((w) => name.some((n) => n === w || n.startsWith(w) || w.startsWith(n))).length;
+      if (hits === 0) return null;
+      let score = hits / wanted.length - name.length * 0.01;
+      if (name[0] && wanted.some((w) => name[0].startsWith(w))) score += 0.3;
+      if (name.includes("cru") || name.includes("crue")) score += 0.05;
+      if (name.includes("prepare") || name.includes("plat")) score -= 0.2;
+      return { food, score };
+    })
+    .filter((x): x is { food: CiqualFood; score: number } => x !== null)
+    .sort((a, b) => b.score - a.score || a.food.nameFr.localeCompare(b.food.nameFr, "fr"));
+  return scored.slice(0, limit).map((x) => x.food);
+}
+
+export interface CiqualMappingEntry {
+  code: string;
+  /** Exact Ciqual name checked by a person: the link is refused if the table says otherwise. */
+  name: string;
+}
+
+/** Whether a verified mapping still points at the food it was checked against. */
+export function mappingMatches(entry: CiqualMappingEntry, food: CiqualFood | undefined): boolean {
+  return food !== undefined && food.nameFr.trim().toLowerCase() === entry.name.trim().toLowerCase();
+}

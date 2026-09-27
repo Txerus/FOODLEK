@@ -23,6 +23,8 @@ import type { HouseholdSetup } from "@/lib/validation/household";
 import { MemberSwitcher } from "./member-switcher";
 import { WeightGoalFields } from "./weight-goal";
 
+const MONTHS = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+
 const numberOrNull = (v: unknown) => (v === "" || v === null || v === undefined ? null : Number(v));
 
 export function ProfilesStep() {
@@ -79,11 +81,26 @@ export function ProfilesStep() {
               />
               <FieldError errors={[errors?.sex]} />
             </FieldSet>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <Field data-invalid={Boolean(errors?.birthYear)}>
                 <FieldLabel htmlFor={`m${i}-birth`}>Année de naissance</FieldLabel>
                 <Input id={`m${i}-birth`} inputMode="numeric" type="number" {...register(`members.${i}.birthYear`, { setValueAs: numberOrNull })} />
                 <FieldError errors={[errors?.birthYear]} />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor={`m${i}-birth-month`}>Mois de naissance (facultatif)</FieldLabel>
+                <select
+                  id={`m${i}-birth-month`}
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  {...register(`members.${i}.birthMonth`, { setValueAs: numberOrNull })}
+                >
+                  <option value="">Non précisé</option>
+                  {MONTHS.map((label, k) => (
+                    <option key={label} value={k + 1}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               </Field>
               <Field data-invalid={Boolean(errors?.heightCm)}>
                 <FieldLabel htmlFor={`m${i}-height`}>Taille</FieldLabel>

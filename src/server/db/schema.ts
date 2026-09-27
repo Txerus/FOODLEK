@@ -180,6 +180,8 @@ export const householdMembers = pgTable(
     profileMode: text().notNull().default("simplified"),
     sex: text(),
     birthYear: integer(),
+    /** Optional: makes the age exact (only the year is otherwise known). */
+    birthMonth: integer(),
     heightCm: real(),
     weightKg: real(),
     activity: text().notNull().default("light"),
@@ -458,6 +460,13 @@ export const pantryItems = pgTable(
   (t) => [uniqueIndex().on(t.householdId, t.ingredientId)],
 );
 
+export interface PreviousPlanState {
+  seed: number;
+  savedAt: string;
+  slots: { date: string; dayIndex: number; mealType: string; recipeId: string | null; locked: boolean; eaterIds: string[] }[];
+  checkedIngredientIds: string[];
+}
+
 export const mealPlans = pgTable(
   "meal_plans",
   {
@@ -472,6 +481,8 @@ export const mealPlans = pgTable(
     generatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     /** Validation of a basket above a strict budget. */
     overBudgetAcceptedAt: timestamp({ withTimezone: true }),
+    /** The week as it was before the last regeneration, to undo it. */
+    previousState: jsonb().$type<PreviousPlanState>(),
     ...timestamps,
   },
   (t) => [index().on(t.householdId, t.weekStart)],

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
+import { cn } from "@/lib/utils";
 import {
   householdSetupSchema,
   type HouseholdSetup,
@@ -70,6 +71,10 @@ export function HouseholdWizard({
   const values = useWatch({ control: form.control });
   const current = STEPS[step];
   const isLast = step === STEPS.length - 1;
+  const editing = mode === "edit";
+  // In edit mode every section is reachable directly; the recap is not needed.
+  const sections = editing ? STEPS.filter((s) => s.id !== "recap") : STEPS;
+  const { isDirty } = form.formState;
 
   // Autosave (onboarding only): the wizard can be resumed later, on any device.
   const serialized = useMemo(() => JSON.stringify({ step, data: values }), [step, values]);
@@ -124,7 +129,8 @@ export function HouseholdWizard({
           return;
         }
         toast.success(res.message ?? "Enregistré.");
-        router.push("/dashboard");
+        // Stay on the page: several sections are often edited in a row.
+        form.reset(data);
         router.refresh();
       }
     });
@@ -146,15 +152,49 @@ export function HouseholdWizard({
         className="mx-auto flex w-full max-w-2xl flex-1 flex-col"
         onKeyDown={(e) => {
           // Enter in a text field should not submit the whole wizard.
-          if (e.key === "Enter" && !isLast && (e.target as HTMLElement).tagName === "INPUT") e.preventDefault();
+          if (e.key === "Enter" && (editing || !isLast) && (e.target as HTMLElement).tagName === "INPUT") e.preventDefault();
         }}
       >
-        <div className="sticky top-0 z-10 -mx-4 bg-background/90 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>
-              Étape {step + 1} sur {STEPS.length}
-            </span>
-            {mode === "onboarding" ? (
+        {editing ? (
+          <div className="flex flex-col gap-4 pb-2">
+            <div className="flex flex-col gap-1.5">
+              <h1 className="font-display text-3xl font-semibold sm:text-4xl">Mon foyer</h1>
+              <p className="text-muted-foreground">Choisissez la partie à modifier, puis enregistrez. Rien n'est à refaire depuis le début.</p>
+            </div>
+            <nav aria-label="Parties du foyer" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+              <ul className="flex gap-2 sm:flex-wrap">
+                {sections.map((s) => {
+                  const index = STEPS.indexOf(s);
+                  const invalid = s.fields.some((f) => form.getFieldState(f).invalid);
+                  return (
+                    <li key={s.id} className="shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStep(index);
+                          focusHeading();
+                        }}
+                        aria-current={index === step ? "page" : undefined}
+                        className={cn(
+                          "inline-flex h-9 items-center rounded-full border px-3.5 text-sm transition-colors",
+                          index === step ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:bg-accent",
+                          invalid && index !== step && "border-destructive text-destructive",
+                        )}
+                      >
+                        {s.title}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          </div>
+        ) : (
+          <div className="sticky top-0 z-10 -mx-4 bg-background/90 px-4 pt-3 pb-4 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:backdrop-blur-none">
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>
+                Étape {step + 1} sur {STEPS.length}
+              </span>
               <span className="inline-flex items-center gap-1.5" aria-live="polite">
                 {saveState === "saving" ? (
                   <>
@@ -168,16 +208,22 @@ export function HouseholdWizard({
                   <span className="text-destructive">Brouillon non enregistré</span>
                 ) : null}
               </span>
-            ) : null}
+            </div>
+            <Progress value={progress} className="mt-2 h-1.5" aria-label={`Progression : ${progress} %`} />
           </div>
-          <Progress value={progress} className="mt-2 h-1.5" aria-label={`Progression : ${progress} %`} />
-        </div>
+        )}
 
         <div key={current.id} className="flex flex-1 animate-rise flex-col gap-6 py-4">
           <div className="flex flex-col gap-1.5">
-            <h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-semibold outline-none sm:text-4xl">
-              {current.title}
-            </h1>
+            {editing ? (
+              <h2 ref={headingRef} tabIndex={-1} className="font-display text-2xl font-semibold outline-none">
+                {current.title}
+              </h2>
+            ) : (
+              <h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-semibold outline-none sm:text-4xl">
+                {current.title}
+              </h1>
+            )}
             <p className="text-muted-foreground">{current.subtitle}</p>
           </div>
           {current.id === "household" && <HouseholdStep />}
@@ -192,23 +238,35 @@ export function HouseholdWizard({
         </div>
 
         <div className="sticky bottom-0 -mx-4 mt-auto border-t bg-background/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-6">
-          <div className="flex items-center justify-between gap-3">
-            <Button type="button" variant="ghost" onClick={back} disabled={step === 0 || pending}>
-              <ArrowLeftIcon data-icon="inline-start" />
-              Retour
-            </Button>
-            {isLast ? (
-              <Button key="submit" type="submit" size="lg" disabled={pending}>
+          {editing ? (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground" aria-live="polite">
+                {isDirty ? "Modifications non enregistrées" : "Aucune modification"}
+              </p>
+              <Button type="submit" size="lg" disabled={pending || !isDirty}>
                 {pending ? <Spinner data-icon="inline-start" /> : <CheckIcon data-icon="inline-start" />}
-                {mode === "onboarding" ? "Générer ma semaine" : "Enregistrer"}
+                Enregistrer
               </Button>
-            ) : (
-              <Button key="next" type="button" size="lg" onClick={next}>
-                Continuer
-                <ArrowRightIcon data-icon="inline-end" />
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <Button type="button" variant="ghost" onClick={back} disabled={step === 0 || pending}>
+                <ArrowLeftIcon data-icon="inline-start" />
+                Retour
               </Button>
-            )}
-          </div>
+              {isLast ? (
+                <Button key="submit" type="submit" size="lg" disabled={pending}>
+                  {pending ? <Spinner data-icon="inline-start" /> : <CheckIcon data-icon="inline-start" />}
+                  Générer ma semaine
+                </Button>
+              ) : (
+                <Button key="next" type="button" size="lg" onClick={next}>
+                  Continuer
+                  <ArrowRightIcon data-icon="inline-end" />
+                </Button>
+              )}
+            </div>
+          )}
           {isLast && mode === "onboarding" ? (
             <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
               <InfoIcon aria-hidden className="mt-0.5 size-3.5 shrink-0" />

@@ -23,6 +23,7 @@ import {
   type OpenPricesLocation,
   type OpenPricesPrice,
 } from "./observed-prices";
+import { pruneOldPrices } from "./maintenance";
 import { FRENCH_RETAILERS, type RetailerDefinition } from "./registry";
 
 /**
@@ -398,6 +399,9 @@ export async function syncObservedPrices(
       .set({ status: "success", itemCount: priceCount, finishedAt: new Date() })
       .where(eq(t.syncLogs.id, logId));
   });
+
+  // Housekeeping: superseded and very old observed prices are dropped.
+  await pruneOldPrices(database, now);
 
   return {
     storeId,

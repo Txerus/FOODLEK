@@ -237,7 +237,10 @@ export function evaluate(input: PlannerInput, ctx: EvalContext, assignment: Assi
       mealKey: s.slotKey,
       recipeId: s.recipeId,
       recipeTitle: recipe.title,
-      quantities: cookingQuantities(s.servesSlotKeys.flatMap((k) => portions[k] ?? [])),
+      quantities: cookingQuantities(
+        s.servesSlotKeys.flatMap((k) => portions[k] ?? []),
+        input.ingredients,
+      ),
     };
   });
   const shopping = buildShoppingList(

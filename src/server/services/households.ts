@@ -67,6 +67,7 @@ function toMember(row: typeof t.householdMembers.$inferSelect): HouseholdMemberR
       mode: row.profileMode === "detailed" ? "detailed" : "simplified",
       sex: (row.sex as Sex | null) ?? null,
       birthYear: row.birthYear,
+      birthMonth: row.birthMonth,
       heightCm: row.heightCm,
       weightKg: row.weightKg,
       activity: row.activity as ActivityLevel,
@@ -181,6 +182,7 @@ function memberValues(householdId: string, m: MemberInput, position: number) {
     // Data minimisation: body measurements are only kept for detailed profiles.
     sex: detailed ? m.sex : null,
     birthYear: m.birthYear,
+    birthMonth: m.birthYear !== null ? (m.birthMonth ?? null) : null,
     heightCm: detailed ? m.heightCm : null,
     weightKg: detailed ? m.weightKg : null,
     activity: m.activity,
@@ -289,6 +291,7 @@ export function contextToSetup(ctx: HouseholdContext): HouseholdSetup | null {
       profileMode: m.profile.mode,
       sex: m.profile.sex,
       birthYear: m.profile.birthYear,
+      birthMonth: m.profile.birthMonth ?? null,
       heightCm: m.profile.heightCm,
       weightKg: m.profile.weightKg,
       activity: m.profile.activity,

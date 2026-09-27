@@ -89,3 +89,24 @@ describe("recipe tags", () => {
     expect(index.get("ing_sauce-soja")?.allergens).toEqual(expect.arrayContaining(["soy", "gluten"]));
   });
 });
+
+describe("whole pieces", () => {
+  it("rounds eggs up to whole pieces in household totals, grams unchanged", async () => {
+    const { cookingQuantities } = await import("./portions/portions");
+    const index = demoInput().ingredients;
+    const item = (q: number) => ({
+      ingredientId: "ing_oeuf",
+      ingredientName: "Œuf",
+      role: "protein" as const,
+      quantity: q,
+      exactQuantity: q,
+      unit: "piece" as const,
+      grams: q * 50,
+    });
+    const plates = [1.75, 1.75].map((q, i) => ({ memberId: `m${i}`, items: [item(q)] })) as never;
+    const [egg] = cookingQuantities(plates, index);
+    expect(egg.quantity).toBe(4);
+    expect(egg.grams).toBe(175);
+    expect(cookingQuantities(plates)[0].quantity).toBe(3.5);
+  });
+});

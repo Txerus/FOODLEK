@@ -148,7 +148,7 @@ export default async function ShoppingPage() {
           </AlertDescription>
         </Alert>
       ) : null}
-      <ShoppingList planId={planId} aisles={aisles} initiallyChecked={[...view.checkedIngredientIds]} />
+      <ShoppingList planId={planId} aisles={aisles} initiallyChecked={[...view.checkedIngredientIds]} totalCents={shopping.totalCents} />
       {pantry.length > 0 ? (
         <section aria-labelledby="pantry-title" className="flex flex-col gap-2">
           <h2 id="pantry-title" className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">

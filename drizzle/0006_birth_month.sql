@@ -1,0 +1,1 @@
+ALTER TABLE "household_members" ADD COLUMN "birth_month" integer;

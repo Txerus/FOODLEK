@@ -511,7 +511,8 @@ export const INGREDIENT_SEEDS: IngredientSeed[] = [
     aisle: "fruits_legumes",
     purchaseUnit: "g",
     fdcId: "2346406",
-    measures: {},
+    measures: { gramsPerPiece: 200 },
+    measuresSource: "USDA FNDDS 2709784 (Cucumber, raw) « 1 regular = 200 g »",
     allergens: [],
     animalOrigin: "none",
     shelfLifeDays: 7,
@@ -1206,7 +1207,8 @@ export const INGREDIENT_SEEDS: IngredientSeed[] = [
     aisle: "fruits_legumes",
     purchaseUnit: "g",
     fdcId: "327046",
-    measures: {},
+    measures: { gramsPerPiece: 75 },
+    measuresSource: "USDA FNDDS 2709239 (Kiwi fruit, raw) « 1 fruit = 75 g »",
     allergens: [],
     animalOrigin: "none",
     shelfLifeDays: 14,
@@ -1502,6 +1504,9 @@ export function ingredientId(slug: string): string {
   return `ing_${slug}`;
 }
 
+/** Ingredients used whole in the pan: household totals are rounded up to whole pieces. */
+export const WHOLE_PIECE_SLUGS: ReadonlySet<string> = new Set(["oeuf", "tortilla-ble"]);
+
 export function buildSeedIngredients(): Ingredient[] {
   return INGREDIENT_SEEDS.map((seed) => ({
     id: ingredientId(seed.slug),
@@ -1520,5 +1525,6 @@ export function buildSeedIngredients(): Ingredient[] {
     cookedYield: cookedYield(seed),
     proteinFamily: seed.proteinFamily ?? null,
     pieceLabel: seed.pieceLabel ?? null,
+    wholePieces: WHOLE_PIECE_SLUGS.has(seed.slug),
   }));
 }

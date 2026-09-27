@@ -93,6 +93,8 @@ export interface Ingredient {
   proteinFamily: ProteinFamily | null;
   /** Noun used when counting pieces ("2 œufs"). */
   pieceLabel: { one: string; many: string } | null;
+  /** Cannot be split in the pan (an egg): household totals are whole pieces. */
+  wholePieces?: boolean;
   /** Generic photo of the ingredient (not of a product), with its credit. */
   photo?: { url: string; credit: string | null; sourceUrl: string | null } | null;
 }

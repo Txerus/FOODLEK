@@ -11,6 +11,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/in
 import type { DataQuality } from "@/domain/common/data-quality";
 import { formatEuros, formatMinutes } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { FILTERS, type Filter } from "./recipe-filters";
 
 export interface RecipeListItem {
   slug: string;
@@ -31,30 +32,37 @@ export interface RecipeListItem {
   visual?: ReactNode;
 }
 
-type Filter = "all" | "main" | "quick" | "vegetarian" | "fish" | "protein" | "cheap" | "breakfast" | "dessert" | "snack";
-
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: "all", label: "Toutes" },
-  { value: "main", label: "Plats" },
-  { value: "quick", label: "Moins de 30 min" },
-  { value: "vegetarian", label: "Végétariennes" },
-  { value: "fish", label: "Poisson" },
-  { value: "protein", label: "Protéinées" },
-  { value: "cheap", label: "Économiques" },
-  { value: "breakfast", label: "Petit-déjeuner" },
-  { value: "dessert", label: "Desserts" },
-  { value: "snack", label: "Goûters" },
-];
-
 function normalize(s: string) {
   return s.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 }
 
 const PAGE_SIZE = 24;
 
-export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
+/** Keeps the search and the filter in the address (?q=…&filtre=…), so "back" and shared links keep them. */
+function syncUrl(query: string, filter: Filter) {
+  try {
+    const url = new URL(window.location.href);
+    if (query.trim()) url.searchParams.set("q", query.trim());
+    else url.searchParams.delete("q");
+    if (filter !== "all") url.searchParams.set("filtre", filter);
+    else url.searchParams.delete("filtre");
+    window.history.replaceState(window.history.state, "", url);
+  } catch {
+    // The URL is a convenience: the list works without it.
+  }
+}
+
+export function RecipeBrowser({
+  items,
+  initialQuery = "",
+  initialFilter = "all",
+}: {
+  items: RecipeListItem[];
+  initialQuery?: string;
+  initialFilter?: Filter;
+}) {
+  const [query, setQuery] = useState(initialQuery);
+  const [filter, setFilter] = useState<Filter>(initialFilter);
   // 159 cards at once make a very long page on a phone: show them by pages of 24.
   const [shown, setShown] = useState(PAGE_SIZE);
   const cheapThreshold = useMemo(() => {
@@ -101,6 +109,7 @@ export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
             onChange={(e) => {
               setQuery(e.target.value);
               setShown(PAGE_SIZE);
+              syncUrl(e.target.value, filter);
             }} placeholder="Rechercher une recette" aria-label="Rechercher une recette" />
         </InputGroup>
         <SingleChips
@@ -109,6 +118,7 @@ export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
           onChange={(f) => {
             setFilter(f);
             setShown(PAGE_SIZE);
+            syncUrl(query, f);
           }}
           options={FILTERS}
         />

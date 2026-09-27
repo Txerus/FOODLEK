@@ -15,6 +15,7 @@ import postgres from "postgres";
 import { DEMO_PANTRY_SLUGS, DEMO_PRODUCTS, DEMO_RETAILER, DEMO_STORE } from "../../src/data/demo-catalog";
 import { demoOffer, demoProductId } from "../../src/data/demo-offers";
 import { buildSeedIngredients, INGREDIENT_SEEDS, ingredientId } from "../../src/data/ingredients";
+import ciqualMapping from "../../data/reference/ciqual-mapping.json";
 import usda from "../../data/reference/usda-subset.json";
 import { RECIPES } from "../../src/data/recipes";
 import { indexIngredients } from "../../src/domain/catalog/types";
@@ -56,6 +57,12 @@ async function seedReference() {
 
     const ing = index.get(ingredientId(seed.slug));
     if (!ing) continue;
+    // A Ciqual composition linked by `pnpm data:ciqual` (verified mapping) is kept over USDA.
+    const ciqual = (ciqualMapping.mappings as Record<string, { code: string }>)[ing.id];
+    const ciqualId = ciqual ? `comp_ciqual_${ciqual.code}` : null;
+    const keepCiqual =
+      ciqualId !== null &&
+      (await database.select({ id: t.foodCompositions.id }).from(t.foodCompositions).where(eq(t.foodCompositions.id, ciqualId)).limit(1)).length > 0;
     const row = {
       slug: ing.slug,
       name: ing.name,
@@ -63,7 +70,7 @@ async function seedReference() {
       purchaseUnit: ing.purchaseUnit,
       measures: ing.measures,
       measuresSource: seed.measuresSource ?? null,
-      compositionId,
+      compositionId: keepCiqual && ciqualId ? ciqualId : compositionId,
       allergens: ing.allergens,
       animalOrigin: ing.animalOrigin,
       isPork: ing.isPork,

@@ -19,6 +19,7 @@ import { isUpcoming, parisNow } from "@/lib/time";
 import { addDays, planningWeekStart, weekStartFor } from "@/lib/week";
 import { db } from "../db/client";
 import * as t from "../db/schema";
+import type { PreviousPlanState } from "../db/schema";
 import { newId } from "../ids";
 import { errorContext, logger } from "../observability/logger";
 import { getCatalog, type Catalog } from "./catalog";
@@ -210,9 +211,25 @@ export async function generatePlan(householdId: string, weekStart: string): Prom
       .limit(1);
     if (current) planId = current.id;
     if (current) {
+      // Keep the week as it was, so the regeneration can be undone.
+      const [previousPlan] = await tx.select({ seed: t.mealPlans.seed }).from(t.mealPlans).where(eq(t.mealPlans.id, planId));
+      const previousSlots = await tx.select().from(t.mealPlanSlots).where(eq(t.mealPlanSlots.planId, planId));
+      const previousChecked = await tx
+        .select({ ingredientId: t.shoppingListItems.ingredientId })
+        .from(t.shoppingListItems)
+        .where(and(eq(t.shoppingListItems.planId, planId), eq(t.shoppingListItems.checked, true)));
+      const previousState: PreviousPlanState | null =
+        previousSlots.length > 0
+          ? {
+              seed: previousPlan.seed,
+              savedAt: new Date().toISOString(),
+              slots: previousSlots.map((s) => ({ date: s.date, dayIndex: s.dayIndex, mealType: s.mealType, recipeId: s.recipeId, locked: s.locked, eaterIds: s.eaterIds })),
+              checkedIngredientIds: previousChecked.map((c) => c.ingredientId),
+            }
+          : null;
       await tx
         .update(t.mealPlans)
-        .set({ seed: input.seed, generatedAt: new Date(), storeId: settings?.storeId ?? null, overBudgetAcceptedAt: null })
+        .set({ seed: input.seed, generatedAt: new Date(), storeId: settings?.storeId ?? null, overBudgetAcceptedAt: null, previousState })
         .where(eq(t.mealPlans.id, planId));
       await tx.delete(t.shoppingListItems).where(eq(t.shoppingListItems.planId, planId));
     } else {
@@ -227,6 +244,30 @@ export async function generatePlan(householdId: string, weekStart: string): Prom
     await writePlanSlots(tx, planId, input.slots, result.best.assignment, keptLocks);
   });
   return { planId, droppedLocks: result.droppedLocks.length };
+}
+
+/**
+ * Puts back the week as it was before the last regeneration (meals, pins and
+ * ticked shopping items). Returns false when there is nothing to undo.
+ */
+export async function undoRegeneration(planId: string): Promise<boolean> {
+  return db().transaction(async (tx) => {
+    const [plan] = await tx.select({ previousState: t.mealPlans.previousState }).from(t.mealPlans).where(eq(t.mealPlans.id, planId)).for("update");
+    const previous = plan?.previousState;
+    if (!previous) return false;
+    await tx.delete(t.mealPlanSlots).where(eq(t.mealPlanSlots.planId, planId));
+    if (previous.slots.length > 0) {
+      await tx.insert(t.mealPlanSlots).values(previous.slots.map((s) => ({ id: newId("slot"), planId, ...s })));
+    }
+    await tx.delete(t.shoppingListItems).where(eq(t.shoppingListItems.planId, planId));
+    if (previous.checkedIngredientIds.length > 0) {
+      await tx
+        .insert(t.shoppingListItems)
+        .values(previous.checkedIngredientIds.map((ingredientId) => ({ id: newId("sli"), planId, ingredientId, checked: true, checkedAt: new Date() })));
+    }
+    await tx.update(t.mealPlans).set({ seed: previous.seed, generatedAt: new Date(), previousState: null }).where(eq(t.mealPlans.id, planId));
+    return true;
+  });
 }
 
 async function getPlanRow(householdId: string, weekStart: string) {
@@ -361,34 +402,92 @@ async function updateSlotRecipe(planId: string, slotKey: string, recipeId: strin
   await db().update(t.mealPlans).set({ overBudgetAcceptedAt: null }).where(eq(t.mealPlans.id, planId));
 }
 
+export interface ReplacementProposal {
+  recipeId: string | null;
+  recipeTitle: string | null;
+  minutes: number | null;
+  /** Change of the week's basket if applied, in cents (negative = cheaper). */
+  basketDeltaCents: number | null;
+  message: string | null;
+}
+
+/**
+ * Computes the replacement of a meal without saving it, so the household can
+ * see it first. `exclude` skips recipes already proposed ("autre proposition").
+ */
+export async function proposeReplacement(
+  householdId: string,
+  planId: string,
+  slotKey: string,
+  reason: ReplacementReason,
+  exclude: readonly string[] = [],
+): Promise<ReplacementProposal> {
+  const view = await loadPlanView(householdId, planId);
+  const currentId = view.evaluation.assignment[slotKey];
+  const skipped = [...exclude, ...(reason === "dislike" && currentId ? [currentId] : [])];
+  const input: PlannerInput =
+    skipped.length > 0
+      ? { ...view.input, preferences: { ...view.input.preferences, dislikedRecipeIds: [...view.input.preferences.dislikedRecipeIds, ...skipped] } }
+      : view.input;
+  const result = replaceSlot(input, view.evaluation.assignment, slotKey, reason);
+  const recipeId = result.evaluation?.assignment[slotKey] ?? null;
+  if (!result.evaluation || !recipeId || recipeId === currentId) {
+    return { recipeId: null, recipeTitle: null, minutes: null, basketDeltaCents: null, message: result.message ?? "Aucune autre recette compatible pour ce repas." };
+  }
+  const recipe = view.recipes.get(recipeId) ?? null;
+  return {
+    recipeId,
+    recipeTitle: recipe?.title ?? null,
+    minutes: recipe ? recipe.prepMinutes + recipe.cookMinutes : null,
+    basketDeltaCents: result.evaluation.shopping.totalCents - view.evaluation.shopping.totalCents,
+    message: result.message,
+  };
+}
+
+/**
+ * Applies a replacement the household has seen. The feedback ("je n'aime
+ * pas", "déjà mangé") is recorded only now. Returns the previous recipe, for
+ * the "Annuler" button.
+ */
+export async function applyReplacement(
+  householdId: string,
+  planId: string,
+  slotKey: string,
+  reason: ReplacementReason,
+  recipeId: string,
+): Promise<{ previousRecipeId: string | null }> {
+  const view = await loadPlanView(householdId, planId);
+  const slot = view.slots.find((s) => s.key === slotKey);
+  if (!slot) throw new Error("Repas introuvable dans ce planning.");
+  if (!eligibleRecipes(view.input, slot).some((c) => c.recipe.id === recipeId)) {
+    throw new Error("Cette recette n'est pas compatible avec les contraintes du foyer.");
+  }
+  const currentId = view.evaluation.assignment[slotKey] ?? null;
+  if (currentId && (reason === "dislike" || reason === "recently_eaten")) {
+    await db()
+      .insert(t.recipeFeedback)
+      .values({ id: newId("fb"), householdId, recipeId: currentId, kind: reason === "dislike" ? "dislike" : "eaten" });
+  }
+  await updateSlotRecipe(planId, slotKey, recipeId);
+  return { previousRecipeId: currentId };
+}
+
+/** Proposes and applies in one go (kept for scripts and tests). */
 export async function replaceMeal(
   householdId: string,
   planId: string,
   slotKey: string,
   reason: ReplacementReason,
 ): Promise<{ message: string | null; recipeTitle: string | null }> {
-  const view = await loadPlanView(householdId, planId);
-  const currentId = view.evaluation.assignment[slotKey];
-  if (currentId && (reason === "dislike" || reason === "recently_eaten")) {
-    await db()
-      .insert(t.recipeFeedback)
-      .values({ id: newId("fb"), householdId, recipeId: currentId, kind: reason === "dislike" ? "dislike" : "eaten" });
-  }
-  const input: PlannerInput =
-    reason === "dislike" && currentId
-      ? {
-          ...view.input,
-          preferences: { ...view.input.preferences, dislikedRecipeIds: [...view.input.preferences.dislikedRecipeIds, currentId] },
-        }
-      : view.input;
-  const result = replaceSlot(input, view.evaluation.assignment, slotKey, reason);
-  if (!result.evaluation) return { message: result.message, recipeTitle: null };
-  const newRecipeId = result.evaluation.assignment[slotKey] ?? null;
-  await updateSlotRecipe(planId, slotKey, newRecipeId);
-  return {
-    message: result.message,
-    recipeTitle: newRecipeId ? (view.recipes.get(newRecipeId)?.title ?? null) : null,
-  };
+  const proposal = await proposeReplacement(householdId, planId, slotKey, reason);
+  if (!proposal.recipeId) return { message: proposal.message, recipeTitle: null };
+  await applyReplacement(householdId, planId, slotKey, reason, proposal.recipeId);
+  return { message: proposal.message, recipeTitle: proposal.recipeTitle };
+}
+
+/** Puts a previous recipe back (undo of a replacement); the slot may have been empty. */
+export async function restoreSlotRecipe(planId: string, slotKey: string, recipeId: string | null): Promise<void> {
+  await updateSlotRecipe(planId, slotKey, recipeId);
 }
 
 export async function chooseRecipeForSlot(householdId: string, planId: string, slotKey: string, recipeId: string): Promise<void> {
@@ -416,6 +515,11 @@ export async function setShoppingChecked(planId: string, ingredientId: string, c
       target: [t.shoppingListItems.planId, t.shoppingListItems.ingredientId],
       set: { checked, checkedAt: checked ? new Date() : null },
     });
+}
+
+/** Unticks every item of the shopping list (a new shopping trip). */
+export async function uncheckAllShopping(planId: string): Promise<void> {
+  await db().update(t.shoppingListItems).set({ checked: false, checkedAt: null }).where(eq(t.shoppingListItems.planId, planId));
 }
 
 export async function acceptOverBudget(planId: string): Promise<void> {

@@ -1,4 +1,5 @@
 {
-  "_about": "Correspondances ingrédient FOODLEK → code aliment Ciqual (alim_code). À remplir par un humain après vérification dans la table (https://ciqual.anses.fr/). Tant qu'un ingrédient n'a pas de code vérifié ici, il garde sa composition USDA.",
+  "_about": "Correspondances ingrédient FOODLEK → aliment Ciqual. Chaque entrée donne le code (alim_code) ET le nom exact (alim_nom_fr) vérifiés par une personne dans la table. `pnpm data:ciqual --suggest` propose des candidats dans data/reference/ciqual-suggestions.json ; copiez ici ceux que vous validez. Un code dont le nom ne correspond plus à la table est ignoré. Tant qu'un ingrédient n'a pas d'entrée ici, il garde sa composition USDA.",
+  "_example": { "ing_blanc-de-poulet": { "code": "00000", "name": "Nom exact dans Ciqual" } },
   "mappings": {}
 }

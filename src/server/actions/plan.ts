@@ -9,11 +9,18 @@ import {
   acceptOverBudget,
   chooseRecipeForSlot,
   generatePlan,
+  applyReplacement,
+  proposeReplacement,
   replaceMeal,
+  restoreSlotRecipe,
+  type ReplacementProposal,
   setShoppingChecked,
   setSlotLocked,
+  uncheckAllShopping,
+  undoRegeneration,
 } from "../services/plans";
-import { runAction, type ActionResult } from "./result";
+import { assertWithinLimit } from "../rate-limit";
+import { runAction, UserFacingError, type ActionResult } from "./result";
 
 const slotKey = z.string().regex(/^\d{4}-\d{2}-\d{2}:(breakfast|lunch|dinner|snack)$/);
 const id = z.string().min(1).max(100);
@@ -25,6 +32,7 @@ function revalidateApp() {
 export async function regeneratePlanAction(): Promise<ActionResult<{ planId: string }>> {
   return runAction("regeneratePlan", async () => {
     const { householdId } = await householdForAction();
+    await assertWithinLimit("regeneratePlan", householdId);
     const { planId, droppedLocks } = await generatePlan(householdId, planningWeekStart(new Date()));
     revalidateApp();
     const message =
@@ -35,17 +43,79 @@ export async function regeneratePlanAction(): Promise<ActionResult<{ planId: str
   });
 }
 
+/** Puts back the week as it was before the last regeneration. */
+export async function undoRegenerationAction(input: unknown): Promise<ActionResult> {
+  return runAction("undoRegeneration", async () => {
+    const { planId } = z.object({ planId: id }).parse(input);
+    const { householdId } = await householdForAction();
+    await assertPlanInHousehold(planId, householdId);
+    if (!(await undoRegeneration(planId))) throw new UserFacingError("Il n'y a rien à annuler.");
+    revalidateApp();
+    return { data: undefined, message: "Semaine précédente rétablie." };
+  });
+}
+
+export async function uncheckAllShoppingAction(input: unknown): Promise<ActionResult> {
+  return runAction("uncheckAllShopping", async () => {
+    const { planId } = z.object({ planId: id }).parse(input);
+    const { householdId } = await householdForAction();
+    await assertPlanInHousehold(planId, householdId);
+    await uncheckAllShopping(planId);
+    revalidatePath("/shopping");
+    return { data: undefined, message: "Tous les produits sont décochés." };
+  });
+}
+
 export async function replaceMealAction(input: unknown): Promise<ActionResult<{ recipeTitle: string | null }>> {
   return runAction("replaceMeal", async () => {
     const data = z.object({ planId: id, slotKey, reason: z.enum(REPLACEMENT_REASONS) }).parse(input);
     const { householdId } = await householdForAction();
     await assertPlanInHousehold(data.planId, householdId);
+    await assertWithinLimit("replaceMeal", householdId);
     const result = await replaceMeal(householdId, data.planId, data.slotKey, data.reason);
     revalidateApp();
     return {
       data: { recipeTitle: result.recipeTitle },
       message: result.message ?? (result.recipeTitle ? `Remplacé par : ${result.recipeTitle}` : null),
     };
+  });
+}
+
+/** Shows what a replacement would give, without saving anything. */
+export async function previewReplacementAction(input: unknown): Promise<ActionResult<ReplacementProposal>> {
+  return runAction("previewReplacement", async () => {
+    const data = z
+      .object({ planId: id, slotKey, reason: z.enum(REPLACEMENT_REASONS), exclude: z.array(id).max(30).default([]) })
+      .parse(input);
+    const { householdId } = await householdForAction();
+    await assertPlanInHousehold(data.planId, householdId);
+    await assertWithinLimit("replaceMeal", householdId);
+    const proposal = await proposeReplacement(householdId, data.planId, data.slotKey, data.reason, data.exclude);
+    return { data: proposal };
+  });
+}
+
+export async function applyReplacementAction(input: unknown): Promise<ActionResult<{ previousRecipeId: string | null }>> {
+  return runAction("applyReplacement", async () => {
+    const data = z.object({ planId: id, slotKey, reason: z.enum(REPLACEMENT_REASONS), recipeId: id }).parse(input);
+    const { householdId } = await householdForAction();
+    await assertPlanInHousehold(data.planId, householdId);
+    const result = await applyReplacement(householdId, data.planId, data.slotKey, data.reason, data.recipeId);
+    revalidateApp();
+    return { data: result, message: "Repas remplacé." };
+  });
+}
+
+/** Undo of a replacement: puts the previous recipe (or an empty slot) back. */
+export async function restoreMealAction(input: unknown): Promise<ActionResult> {
+  return runAction("restoreMeal", async () => {
+    const data = z.object({ planId: id, slotKey, recipeId: id.nullable() }).parse(input);
+    const { householdId } = await householdForAction();
+    await assertPlanInHousehold(data.planId, householdId);
+    if (data.recipeId) await chooseRecipeForSlot(householdId, data.planId, data.slotKey, data.recipeId);
+    else await restoreSlotRecipe(data.planId, data.slotKey, null);
+    revalidateApp();
+    return { data: undefined, message: "Repas précédent rétabli." };
   });
 }
 

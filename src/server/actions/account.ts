@@ -5,6 +5,7 @@ import { z } from "zod";
 import { AccessDeniedError, getCurrentUser } from "../auth/access";
 import { getAuth } from "../auth/better-auth";
 import { deleteAccount } from "../services/account";
+import { assertWithinLimit } from "../rate-limit";
 import { runAction, UserFacingError, type ActionResult } from "./result";
 
 const SESSION_COOKIES = ["better-auth.session_token", "better-auth.session_data"];
@@ -19,6 +20,7 @@ export async function deleteAccountAction(input: unknown): Promise<ActionResult>
       .parse(input);
     const user = await getCurrentUser();
     if (!user) throw new AccessDeniedError();
+    await assertWithinLimit("deleteAccount", user.id);
     const requestHeaders = await headers();
     // A stolen session alone must not be enough to erase the account.
     try {

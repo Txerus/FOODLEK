@@ -73,6 +73,12 @@ describe("computeTargets", () => {
     expect(t.effectiveGoal).toBe("none");
   });
 
+  it("uses the birth month when given to know the exact age", () => {
+    const born = { ...alex, birthYear: 2008, birthMonth: 11, goal: "lose" as const };
+    expect(computeTargets(born, new Date("2026-10-15T12:00:00Z")).mode).toBe("protected");
+    expect(computeTargets(born, new Date("2026-12-15T12:00:00Z")).mode).toBe("calculated");
+  });
+
   it("never applies weight loss to a minor", () => {
     const teen: MemberProfile = { ...alex, birthYear: 2011, goal: "lose" };
     const t = computeTargets(teen, TODAY);

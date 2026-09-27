@@ -12,6 +12,7 @@ import {
   PackageIcon,
   PencilIcon,
   RefreshCcwIcon,
+  RotateCcwIcon,
   SaladIcon,
   SnowflakeIcon,
   WheatIcon,
@@ -26,6 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Spinner } from "@/components/ui/spinner";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -35,7 +37,7 @@ import { FRESHNESS_LABELS } from "@/domain/common/data-quality";
 import { formatEuros } from "@/lib/format";
 import { RETAILER_LINKS, type RetailerLink, retailerLink, searchQueryFor } from "@/lib/retailer-links";
 import { cn } from "@/lib/utils";
-import { toggleShoppingItemAction } from "@/server/actions/plan";
+import { toggleShoppingItemAction, uncheckAllShoppingAction } from "@/server/actions/plan";
 import { setManualPriceAction } from "@/server/actions/prices";
 
 const RETAILER_KEY = "foodlek.retailer";
@@ -402,10 +404,13 @@ export function ShoppingList({
   planId,
   aisles,
   initiallyChecked,
+  totalCents,
 }: {
   planId: string;
   aisles: AisleView[];
   initiallyChecked: string[];
+  /** Total of the list, shown in the sticky bar while scrolling. */
+  totalCents?: number;
 }) {
   const [checked, setChecked] = useState(() => new Set(initiallyChecked));
   const [optimistic, setOptimistic] = useOptimistic(checked, (state, { id, value }: { id: string; value: boolean }) => {
@@ -449,6 +454,20 @@ export function ShoppingList({
     }
   }
 
+  function uncheckAll() {
+    start(async () => {
+      const previous = checked;
+      for (const id of previous) setOptimistic({ id, value: false });
+      const res = await uncheckAllShoppingAction({ planId });
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      setChecked(new Set());
+      toast.success(res.message ?? "Liste remise à zéro.");
+    });
+  }
+
   function toggle(id: string, value: boolean) {
     start(async () => {
       setOptimistic({ id, value });
@@ -468,14 +487,32 @@ export function ShoppingList({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm" aria-live="polite">
-          <strong className="tabular">{optimistic.size}</strong> / {total} dans le panier
-        </p>
-        <label className="inline-flex items-center gap-2 text-sm">
-          <Switch checked={hideChecked} onCheckedChange={setHideChecked} />
-          Masquer les produits cochés
-        </label>
+      {/* Stays visible while scrolling the list in the shop. */}
+      <div className="sticky top-14 z-20 -mx-4 flex flex-col gap-2 border-b bg-background/95 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-xl sm:border sm:px-4 md:top-16">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <p className="text-sm" aria-live="polite">
+            <strong className="tabular">{optimistic.size}</strong> / {total} dans le panier
+            {totalCents !== undefined ? (
+              <>
+                {" · "}
+                <strong className="tabular">{formatEuros(totalCents)}</strong>
+              </>
+            ) : null}
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="inline-flex items-center gap-2 text-sm">
+              <Switch checked={hideChecked} onCheckedChange={setHideChecked} />
+              Masquer les cochés
+            </label>
+            {optimistic.size > 0 ? (
+              <Button type="button" variant="ghost" size="sm" onClick={uncheckAll}>
+                <RotateCcwIcon data-icon="inline-start" />
+                Tout décocher
+              </Button>
+            ) : null}
+          </div>
+        </div>
+        <Progress value={total > 0 ? (optimistic.size / total) * 100 : 0} className="h-1.5" aria-label={`${optimistic.size} produit(s) sur ${total} dans le panier`} />
       </div>
       <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 flex-1 flex-col gap-1">

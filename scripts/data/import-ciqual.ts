@@ -3,20 +3,24 @@
  *
  *   pnpm data:ciqual              # downloads the XML files from Recherche Data Gouv
  *   pnpm data:ciqual --local DIR  # uses alim_*.xml and compo_*.xml already downloaded
+ *   pnpm data:ciqual --suggest    # also writes data/reference/ciqual-suggestions.json
  *
  * Every food is stored in food_compositions with source CIQUAL and the table
  * version. Ingredients are re-linked only when data/reference/ciqual-mapping.json
- * gives a verified alim_code for them.
+ * gives a code AND the exact Ciqual name checked by a person, and the table
+ * still has that name for that code. --suggest lists, for each ingredient, the
+ * closest Ciqual foods to check: nothing is linked from suggestions.
  */
 import "../env";
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import mapping from "../../data/reference/ciqual-mapping.json";
-import { decodeXml, parseAlim, parseCompo } from "../../src/server/data/ciqual";
+import { INGREDIENT_SEEDS, ingredientId } from "../../src/data/ingredients";
+import { decodeXml, mappingMatches, parseAlim, parseCompo, suggestCiqualMatches, type CiqualMappingEntry } from "../../src/server/data/ciqual";
 import * as t from "../../src/server/db/schema";
 
 const VERSION = "Ciqual 2025 (2025-11-03)";
@@ -74,15 +78,30 @@ async function main() {
     n++;
   }
   let linked = 0;
-  for (const [ingredientId, code] of Object.entries(mapping.mappings as Record<string, string>)) {
-    const compositionId = `comp_ciqual_${code}`;
-    const exists = await database.select({ id: t.foodCompositions.id }).from(t.foodCompositions).where(and(eq(t.foodCompositions.id, compositionId)));
-    if (exists.length === 0) {
-      process.stderr.write(`Code Ciqual ${code} inconnu pour ${ingredientId}, ignoré\n`);
+  const byCode = new Map(foods.map((f) => [f.code, f]));
+  for (const [ingredient, entry] of Object.entries(mapping.mappings as Record<string, CiqualMappingEntry>)) {
+    const food = byCode.get(entry.code);
+    if (!mappingMatches(entry, food)) {
+      process.stderr.write(
+        `${ingredient} : le code ${entry.code} correspond à « ${food?.nameFr ?? "aucun aliment"} » et non à « ${entry.name} » : ignoré\n`,
+      );
       continue;
     }
-    await database.update(t.ingredients).set({ compositionId }).where(eq(t.ingredients.id, ingredientId));
+    await database.update(t.ingredients).set({ compositionId: `comp_ciqual_${entry.code}` }).where(eq(t.ingredients.id, ingredient));
     linked++;
+  }
+  if (process.argv.includes("--suggest")) {
+    const suggestions = Object.fromEntries(
+      INGREDIENT_SEEDS.map((seed) => [
+        ingredientId(seed.slug),
+        { ingredient: seed.name, candidates: suggestCiqualMatches(seed.name, foods).map((f) => ({ code: f.code, name: f.nameFr })) },
+      ]),
+    );
+    await writeFile(
+      "data/reference/ciqual-suggestions.json",
+      `${JSON.stringify({ _about: "Candidats à vérifier, jamais appliqués automatiquement. Copiez les bons dans ciqual-mapping.json.", table: VERSION, suggestions }, null, 2)}\n`,
+    );
+    process.stdout.write("Suggestions écrites dans data/reference/ciqual-suggestions.json : vérifiez-les puis reportez les bonnes dans ciqual-mapping.json.\n");
   }
   await client.end();
   process.stdout.write(`${n} compositions Ciqual importées, ${linked} ingrédients reliés.\n`);

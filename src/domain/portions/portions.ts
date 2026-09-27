@@ -227,7 +227,11 @@ export interface CookingQuantity {
  * person's portion (so the shopping list and the plates always add up),
  * rounded once for the cook.
  */
-export function cookingQuantities(portions: readonly MemberPortion[]): CookingQuantity[] {
+/**
+ * @param ingredients when given, ingredients that cannot be split (eggs) are
+ *   rounded to whole pieces: nobody cracks 3,5 eggs. Grams stay exact.
+ */
+export function cookingQuantities(portions: readonly MemberPortion[], ingredients?: IngredientIndex): CookingQuantity[] {
   const byIngredient = new Map<string, CookingQuantity>();
   for (const p of portions) {
     for (const item of p.items) {
@@ -247,5 +251,11 @@ export function cookingQuantities(portions: readonly MemberPortion[]): CookingQu
       }
     }
   }
-  return [...byIngredient.values()].map((q) => ({ ...q, quantity: roundForKitchen(q.quantity, q.unit) }));
+  return [...byIngredient.values()].map((q) => {
+    if (q.unit === "piece" && ingredients?.get(q.ingredientId)?.wholePieces) {
+      // Up to the next whole piece, ignoring floating noise (2,02 → 2, 3,5 → 4).
+      return { ...q, quantity: Math.max(1, Math.ceil(q.quantity - 0.1)) };
+    }
+    return { ...q, quantity: roundForKitchen(q.quantity, q.unit) };
+  });
 }

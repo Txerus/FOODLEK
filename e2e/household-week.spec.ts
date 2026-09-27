@@ -97,6 +97,10 @@ test("créer un foyer, générer la semaine, remplacer un repas", async ({ page 
   const beforeTitle = await page.locator("main li.surface h3").first().innerText();
   await page.locator("main li.surface").first().getByRole("button", { name: /Modifier :/ }).click();
   await page.getByRole("menuitem", { name: "Trop cher" }).click();
+  // A preview is shown first; nothing changes until "Remplacer".
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("button", { name: "Remplacer", exact: true })).toBeVisible({ timeout: 30_000 });
+  await dialog.getByRole("button", { name: "Remplacer", exact: true }).click();
   await expect(page.locator("main li.surface h3").first()).not.toHaveText(beforeTitle, { timeout: 30_000 });
   const afterBasket = euros((await page.getByText(/^Panier/).innerText()).split("/")[0]);
   // The shopping list reflects the new menu: same total as the planning.

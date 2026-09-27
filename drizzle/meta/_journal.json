@@ -43,6 +43,20 @@
       "when": 1790521216486,
       "tag": "0005_ingredient_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790533295672,
+      "tag": "0006_birth_month",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790533454673,
+      "tag": "0007_plan_undo",
+      "breakpoints": true
     }
   ]
 }

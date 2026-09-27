@@ -45,6 +45,8 @@ Compte de démonstration (développement uniquement) : `demo@foodlek.local` / `d
 | `pnpm data:ciqual [--local DIR]`                         | Importe la table ANSES-Ciqual 2025                                                             |
 | `pnpm retail:sync [--find-stores Ville]`                 | Synchronise les prix observés Open Prices                                                      |
 | `pnpm photos:recettes [--force]`                         | Photos professionnelles des recettes (Pexels, `PEXELS_API_KEY`)                                |
+| `pnpm prix:nettoyage`                                    | Supprime les prix observés remplacés ou de plus de 2 ans (jamais les prix saisis)             |
+| `pnpm data:ciqual [--suggest]`                           | Importe la table Ciqual ; `--suggest` propose les correspondances à valider                   |
 | `pnpm photos:ingredients [--force]`                      | Photo d'illustration de chaque ingrédient pour la liste de courses (Pexels)                    |
 | `pnpm admin:grant <e-mail>`                              | Donne l'accès au back-office à un compte                                                       |
 | `pnpm prix:enseigne --enseigne carrefour --ville Annecy` | Prix réels d'une enseigne autour d'une ville (Open Prices) ; aussi depuis « Magasins et prix » |

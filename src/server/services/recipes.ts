@@ -146,7 +146,10 @@ export async function getRecipeDetail(householdId: string, slug: string, slotKey
       return {
         ...base,
         portions: view.evaluation.portions[slotKey] ?? [],
-        cooking: cookingQuantities(keys.flatMap((k) => view.evaluation.portions[k] ?? [])),
+        cooking: cookingQuantities(
+          keys.flatMap((k) => view.evaluation.portions[k] ?? []),
+          view.catalog.ingredientIndex,
+        ),
         slot: { key: slotKey, date: slot.date, mealType: slot.mealType, servesSlotKeys: keys, planId },
         placement,
       };
@@ -164,5 +167,5 @@ export async function getRecipeDetail(householdId: string, slug: string, slotKey
       favourVegetables: m.targets.effectiveGoal === "lose",
     }),
   );
-  return { ...base, portions, cooking: cookingQuantities(portions), slot: null, placement };
+  return { ...base, portions, cooking: cookingQuantities(portions, catalog.ingredientIndex), slot: null, placement };
 }

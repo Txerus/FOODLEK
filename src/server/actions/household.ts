@@ -13,6 +13,7 @@ import {
 } from "../services/households";
 import { planningWeekStart } from "@/lib/week";
 import { generatePlan } from "../services/plans";
+import { assertWithinLimit } from "../rate-limit";
 import { runAction, UserFacingError, type ActionResult } from "./result";
 
 const MAX_DRAFT_BYTES = 64 * 1024;
@@ -52,6 +53,7 @@ export async function completeOnboardingAction(input: unknown): Promise<ActionRe
     const householdId = await ensureHousehold();
     await saveHouseholdSetup(householdId, setup);
     await markOnboardingComplete(householdId);
+    await assertWithinLimit("regeneratePlan", householdId);
     const { planId } = await generatePlan(householdId, planningWeekStart(new Date()));
     revalidatePath("/", "layout");
     return { data: { planId } };
