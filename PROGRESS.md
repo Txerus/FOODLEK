@@ -10,6 +10,7 @@ _Dernière mise à jour : 27 septembre 2026._
 - Visuels des recettes : illustration originale générée à partir des ingrédients de chaque recette (cartes, fiche, tableau de bord, site public), remplacée automatiquement par une photo déclarée dans `data/recipe-images.json`.
 - **Prix réels par enseigne** : « Magasins et prix » → enseigne + ville + rayon → prix réellement payés dans les magasins de l'enseigne autour de la ville (Open Prices, ODbL), produits à code-barres et vrac, magasin créé et sélectionné ; chaque prix indique le magasin et la date du relevé. Aussi en ligne de commande : `pnpm prix:enseigne`.
 - Liste de courses : photo et nom exact du produit (Open Food Facts), bouton « Indiquer le prix » quand un prix manque (prix visible par le seul foyer, pour son magasin) ; en dernier recours, prix vu dans une autre enseigne, marqué « autre enseigne » et « estimation ».
+- **Catalogue élargi** : 111 recettes originales (plats volaille, bœuf, porc, poisson, fruits de mer, végétarien ; petits-déjeuners ; desserts ; goûters), 117 ingrédients avec composition USDA, produits de démonstration et catégories Open Prices ; filtres Plats / Desserts / Goûters ; le repas « Dessert ou goûter » se planifie comme les autres.
 - Prix de chaque plat dans la semaine et sur l'accueil : valeur des ingrédients utilisés au prix payé (placard exclu), prix par assiette ; les restes renvoient au plat d'origine.
 - Photos des recettes : `pnpm photos:recettes` (clé Pexels gratuite) propose 8 photos professionnelles par recette ; choix dans Admin → Photos des recettes (`pnpm admin:grant <e-mail>` pour devenir administrateur). Sans photo : illustration.
 - Courses → drive : choix d'une enseigne (Carrefour, E.Leclerc, Intermarché, Auchan, Courses U, Monoprix), lien « Chercher sur … » par produit, copie de la liste dans le presse-papiers.
@@ -24,7 +25,7 @@ _Dernière mise à jour : 27 septembre 2026._
 
 ## Tests
 
-- 142 tests unitaires, 12 tests d'intégration PostgreSQL, 4 tests Playwright (parcours complet desktop, redirection, 8 pages mobiles sans débordement + courses).
+- 227 tests unitaires, 12 tests d'intégration PostgreSQL, 4 tests Playwright (parcours complet desktop, redirection, 8 pages mobiles sans débordement + courses).
 - `pnpm build` passe.
 
 ## Limites connues
@@ -33,7 +34,7 @@ _Dernière mise à jour : 27 septembre 2026._
 - **Ciqual** : importeur prêt mais non exécuté (téléchargement impossible depuis l'environnement de développement) ; les correspondances ingrédient → code Ciqual sont à vérifier et saisir.
 - **Panier drive automatique (type Jow)** : non disponible. Jow remplit le panier grâce à des partenariats commerciaux avec les enseignes ; FOODLEK n'en a pas. En attendant : liens de recherche par enseigne (formats d'URL à revérifier dans un navigateur, ils peuvent changer) et copie de la liste.
 - Photos de recettes : aucune fournie (droits nécessaires) ; illustrations générées à la place.
-- Catalogue de 26 recettes : pas de collations, 3 petits-déjeuners. Relecture culinaire humaine recommandée.
+- Catalogue de 111 recettes (73 plats, 15 petits-déjeuners, 18 desserts, 8 goûters) : relecture culinaire humaine recommandée. Pas de recette à la levure chimique (composition absente de la table USDA utilisée).
 - Qui mange à quel repas : tout le foyer pour l'instant (le modèle stocke les convives par repas).
 - Back-office en lecture seule ; pas d'édition de recettes ni de mappings via l'interface.
 - Pas encore d'assistant conversationnel, d'invitation d'un second compte, de notifications, de mode hors-ligne.

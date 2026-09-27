@@ -98,7 +98,7 @@ export function demoInput(overrides: Partial<PlannerInput> = {}): PlannerInput {
     locked: {},
     month: 9,
     seed: 42,
-    iterations: 600,
+    iterations: 1800,
     ...overrides,
   };
 }

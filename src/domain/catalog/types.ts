@@ -123,7 +123,7 @@ export const MEAL_TYPE_LABELS: Record<MealType, string> = {
   breakfast: "Petit-déjeuner",
   lunch: "Déjeuner",
   dinner: "Dîner",
-  snack: "Collation",
+  snack: "Dessert ou goûter",
 };
 
 export const EQUIPMENT = ["hob", "oven", "microwave", "blender", "steamer", "wok"] as const;

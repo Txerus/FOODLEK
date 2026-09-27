@@ -31,7 +31,8 @@ import { loadHouseholdContext, type HouseholdContext } from "./households";
 import { getStore, loadOffersForStore, type StoreSummary } from "./offers";
 
 export const MEAL_ORDER: MealType[] = ["breakfast", "lunch", "snack", "dinner"];
-const ITERATIONS = 900;
+// Larger catalogue (≈ 110 recipes): more search steps, still ≈ 0,3 s per generation.
+const ITERATIONS = 1800;
 const RECENT_DAYS = 14;
 
 /** Meals of the week from the household schedule; meals already past are not planned. */
@@ -307,10 +308,7 @@ export async function loadPlanView(householdId: string, planId: string, today = 
     .filter((s) => !assignment[s.key])
     .map((s) => ({
       key: s.key,
-      label:
-        s.mealType === "snack"
-          ? "Pas encore de recettes de collation dans le catalogue."
-          : `Aucune recette compatible pour ce ${MEAL_TYPE_LABELS[s.mealType].toLowerCase()} avec vos contraintes.`,
+      label: `Aucune recette compatible pour ce repas (${MEAL_TYPE_LABELS[s.mealType].toLowerCase()}) avec vos contraintes.`,
     }));
   return {
     planId,

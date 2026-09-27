@@ -136,7 +136,8 @@ describe("replaceSlot", () => {
   it("honours 'je veux du poisson'", () => {
     const res = replaceSlot(input, plan.assignment, slotKey, "want_fish");
     const recipe = RECIPES.find((r) => r.id === res.evaluation!.assignment[slotKey])!;
-    const hasFish = recipe.ingredients.some((ri) => ingredientIndex.get(ri.ingredientId)!.proteinFamily === "fish");
+    // "Poisson" includes seafood (shrimps…), as in the replacement filter.
+    const hasFish = recipe.ingredients.some((ri) => ["fish", "seafood"].includes(ingredientIndex.get(ri.ingredientId)!.proteinFamily ?? ""));
     expect(hasFish).toBe(true);
   });
 

@@ -30,16 +30,19 @@ export interface RecipeListItem {
   visual?: ReactNode;
 }
 
-type Filter = "all" | "quick" | "vegetarian" | "fish" | "protein" | "cheap" | "breakfast";
+type Filter = "all" | "main" | "quick" | "vegetarian" | "fish" | "protein" | "cheap" | "breakfast" | "dessert" | "snack";
 
 const FILTERS: { value: Filter; label: string }[] = [
   { value: "all", label: "Toutes" },
+  { value: "main", label: "Plats" },
   { value: "quick", label: "Moins de 30 min" },
   { value: "vegetarian", label: "Végétariennes" },
   { value: "fish", label: "Poisson" },
   { value: "protein", label: "Protéinées" },
   { value: "cheap", label: "Économiques" },
   { value: "breakfast", label: "Petit-déjeuner" },
+  { value: "dessert", label: "Desserts" },
+  { value: "snack", label: "Goûters" },
 ];
 
 function normalize(s: string) {
@@ -69,6 +72,12 @@ export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
         return cheapThreshold !== null && i.costCents !== null && i.costCents <= cheapThreshold;
       case "breakfast":
         return i.mealTypes.includes("breakfast");
+      case "main":
+        return i.mealTypes.includes("lunch") || i.mealTypes.includes("dinner");
+      case "dessert":
+        return i.tags.includes("dessert");
+      case "snack":
+        return i.tags.includes("collation");
       default:
         return true;
     }

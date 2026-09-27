@@ -2158,6 +2158,1765 @@
         }
       ],
       "url": "https://fdc.nal.usda.gov/food-details/171242/nutrients"
+    },
+    "173627": {
+      "fdcId": "173627",
+      "name": "Chicken, broilers or fryers, dark meat, thigh, meat only, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 121.0,
+        "proteinG": 19.66,
+        "fatG": 4.12,
+        "carbsG": 0.0,
+        "fiberG": 0.0,
+        "sugarsG": 0.0,
+        "saturatedFatG": 1.097,
+        "sodiumMg": 95.0
+      },
+      "portions": [
+        {
+          "description": "4 oz",
+          "grams": 113.0
+        },
+        {
+          "description": "1 thigh without skin",
+          "grams": 149.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/173627/nutrients"
+    },
+    "332397": {
+      "fdcId": "332397",
+      "name": "Ham, sliced, pre-packaged, deli meat (96%fat free, water added)",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 106.0,
+        "proteinG": 16.7,
+        "fatG": 3.73,
+        "carbsG": 0.27,
+        "fiberG": null,
+        "sugarsG": null,
+        "saturatedFatG": 1.12,
+        "sodiumMg": 1040.0
+      },
+      "portions": [
+        {
+          "description": "1 slice",
+          "grams": 13.5
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/332397/nutrients"
+    },
+    "168277": {
+      "fdcId": "168277",
+      "name": "Pork, cured, bacon, unprepared",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 393.0,
+        "proteinG": 13.66,
+        "fatG": 37.13,
+        "carbsG": 0.0,
+        "fiberG": 0.0,
+        "sugarsG": 0.35,
+        "saturatedFatG": 12.615,
+        "sodiumMg": 751.0
+      },
+      "portions": [
+        {
+          "description": "4 oz",
+          "grams": 113.0
+        },
+        {
+          "description": "1 slice raw",
+          "grams": 28.0
+        },
+        {
+          "description": "1 package",
+          "grams": 442.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168277/nutrients"
+    },
+    "175179": {
+      "fdcId": "175179",
+      "name": "Crustaceans, shrimp, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 85.0,
+        "proteinG": 20.1,
+        "fatG": 0.51,
+        "carbsG": 0.0,
+        "fiberG": null,
+        "sugarsG": null,
+        "saturatedFatG": 0.101,
+        "sodiumMg": 119.0
+      },
+      "portions": [
+        {
+          "description": "3 oz",
+          "grams": 85.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/175179/nutrients"
+    },
+    "175139": {
+      "fdcId": "175139",
+      "name": "Fish, sardine, Atlantic, canned in oil, drained solids with bone",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 208.0,
+        "proteinG": 24.62,
+        "fatG": 11.45,
+        "carbsG": 0.0,
+        "fiberG": 0.0,
+        "sugarsG": 0.0,
+        "saturatedFatG": 1.528,
+        "sodiumMg": 307.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, drained",
+          "grams": 149.0
+        },
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        },
+        {
+          "description": "1 cubic inch",
+          "grams": 16.0
+        },
+        {
+          "description": "1 can (3.75 oz)",
+          "grams": 92.0
+        },
+        {
+          "description": "1 small (2-2/3\" x 1/2\" x 1/4\")",
+          "grams": 12.0
+        },
+        {
+          "description": "2 sardines",
+          "grams": 24.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/175139/nutrients"
+    },
+    "169433": {
+      "fdcId": "169433",
+      "name": "Beef, flank, steak, separable lean and fat, trimmed to 0\" fat, choice, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 165.0,
+        "proteinG": 21.22,
+        "fatG": 8.29,
+        "carbsG": 0.0,
+        "fiberG": 0.0,
+        "sugarsG": 0.0,
+        "saturatedFatG": 3.443,
+        "sodiumMg": 54.0
+      },
+      "portions": [
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        },
+        {
+          "description": "4 oz",
+          "grams": 113.0
+        },
+        {
+          "description": "1 steak",
+          "grams": 202.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169433/nutrients"
+    },
+    "168249": {
+      "fdcId": "168249",
+      "name": "Pork, fresh, loin, tenderloin, separable lean only, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 109.0,
+        "proteinG": 20.95,
+        "fatG": 2.17,
+        "carbsG": 0.0,
+        "fiberG": 0.0,
+        "sugarsG": 0.0,
+        "saturatedFatG": 0.698,
+        "sodiumMg": 53.0
+      },
+      "portions": [
+        {
+          "description": "4 oz",
+          "grams": 113.0
+        },
+        {
+          "description": "1 lb",
+          "grams": 453.6
+        },
+        {
+          "description": "1 roast",
+          "grams": 505.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168249/nutrients"
+    },
+    "172420": {
+      "fdcId": "172420",
+      "name": "Lentils, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 352.0,
+        "proteinG": 24.63,
+        "fatG": 1.06,
+        "carbsG": 63.35,
+        "fiberG": 10.7,
+        "sugarsG": 2.03,
+        "saturatedFatG": 0.154,
+        "sodiumMg": 6.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 192.0
+        },
+        {
+          "description": "1 tablespoon",
+          "grams": 12.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/172420/nutrients"
+    },
+    "172421": {
+      "fdcId": "172421",
+      "name": "Lentils, mature seeds, cooked, boiled, without salt",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 116.0,
+        "proteinG": 9.02,
+        "fatG": 0.38,
+        "carbsG": 20.13,
+        "fiberG": 7.9,
+        "sugarsG": 1.8,
+        "saturatedFatG": 0.053,
+        "sodiumMg": 2.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 198.0
+        },
+        {
+          "description": "1 tbsp",
+          "grams": 12.3
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/172421/nutrients"
+    },
+    "175203": {
+      "fdcId": "175203",
+      "name": "Beans, white, mature seeds, cooked, boiled, without salt",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 139.0,
+        "proteinG": 9.73,
+        "fatG": 0.35,
+        "carbsG": 25.09,
+        "fiberG": 6.3,
+        "sugarsG": 0.34,
+        "saturatedFatG": 0.091,
+        "sodiumMg": 6.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 179.0
+        },
+        {
+          "description": "1 tbsp",
+          "grams": 11.2
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/175203/nutrients"
+    },
+    "2259793": {
+      "fdcId": "2259793",
+      "name": "Yogurt, plain, whole milk",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 77.3185,
+        "proteinG": 3.8242,
+        "fatG": 4.484,
+        "carbsG": 5.5749,
+        "fiberG": null,
+        "sugarsG": 4.0936,
+        "saturatedFatG": 2.316,
+        "sodiumMg": 41.78
+      },
+      "portions": [],
+      "url": "https://fdc.nal.usda.gov/food-details/2259793/nutrients"
+    },
+    "171248": {
+      "fdcId": "171248",
+      "name": "Cheese, ricotta, part skim milk",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 138.0,
+        "proteinG": 11.39,
+        "fatG": 7.91,
+        "carbsG": 5.14,
+        "fiberG": 0.0,
+        "sugarsG": 0.31,
+        "saturatedFatG": 4.927,
+        "sodiumMg": 99.0
+      },
+      "portions": [
+        {
+          "description": "0.5 cup",
+          "grams": 124.0
+        },
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        },
+        {
+          "description": "1 cup",
+          "grams": 246.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/171248/nutrients"
+    },
+    "173435": {
+      "fdcId": "173435",
+      "name": "Cheese, goat, soft type",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 264.0,
+        "proteinG": 18.52,
+        "fatG": 21.08,
+        "carbsG": 0.0,
+        "fiberG": 0.0,
+        "sugarsG": 0.0,
+        "saturatedFatG": 14.575,
+        "sodiumMg": 459.0
+      },
+      "portions": [
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/173435/nutrients"
+    },
+    "170859": {
+      "fdcId": "170859",
+      "name": "Cream, fluid, heavy whipping",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 340.0,
+        "proteinG": 2.84,
+        "fatG": 36.08,
+        "carbsG": 2.84,
+        "fiberG": 0.0,
+        "sugarsG": 2.92,
+        "saturatedFatG": 23.032,
+        "sodiumMg": 27.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, whipped",
+          "grams": 120.0
+        },
+        {
+          "description": "1 cup, fluid (yields 2 cups whipped)",
+          "grams": 238.0
+        },
+        {
+          "description": "1 tbsp",
+          "grams": 15.0
+        },
+        {
+          "description": "1 fl oz",
+          "grams": 29.8
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170859/nutrients"
+    },
+    "173904": {
+      "fdcId": "173904",
+      "name": "Cereals, oats, regular and quick, not fortified, dry",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 379.0,
+        "proteinG": 13.15,
+        "fatG": 6.52,
+        "carbsG": 67.7,
+        "fiberG": 10.1,
+        "sugarsG": 0.99,
+        "saturatedFatG": 1.11,
+        "sodiumMg": 6.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 81.0
+        },
+        {
+          "description": "0.33 cup",
+          "grams": 27.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/173904/nutrients"
+    },
+    "168936": {
+      "fdcId": "168936",
+      "name": "Wheat flour, white, all-purpose, enriched, unbleached",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 364.0,
+        "proteinG": 10.33,
+        "fatG": 0.98,
+        "carbsG": 76.31,
+        "fiberG": 2.7,
+        "sugarsG": 0.27,
+        "saturatedFatG": 0.155,
+        "sodiumMg": 2.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 125.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168936/nutrients"
+    },
+    "170688": {
+      "fdcId": "170688",
+      "name": "Bulgur, dry",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 342.0,
+        "proteinG": 12.29,
+        "fatG": 1.33,
+        "carbsG": 75.87,
+        "fiberG": 12.5,
+        "sugarsG": 0.41,
+        "saturatedFatG": 0.232,
+        "sodiumMg": 17.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 140.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170688/nutrients"
+    },
+    "170287": {
+      "fdcId": "170287",
+      "name": "Bulgur, cooked",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 83.0,
+        "proteinG": 3.08,
+        "fatG": 0.24,
+        "carbsG": 18.58,
+        "fiberG": 4.5,
+        "sugarsG": 0.1,
+        "saturatedFatG": 0.042,
+        "sodiumMg": 5.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 182.0
+        },
+        {
+          "description": "1 tbsp",
+          "grams": 8.4
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170287/nutrients"
+    },
+    "169742": {
+      "fdcId": "169742",
+      "name": "Rice noodles, dry",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 364.0,
+        "proteinG": 5.95,
+        "fatG": 0.56,
+        "carbsG": 80.18,
+        "fiberG": 1.6,
+        "sugarsG": 0.12,
+        "saturatedFatG": 0.153,
+        "sodiumMg": 182.0
+      },
+      "portions": [
+        {
+          "description": "2 oz",
+          "grams": 57.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169742/nutrients"
+    },
+    "168914": {
+      "fdcId": "168914",
+      "name": "Rice noodles, cooked",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 108.0,
+        "proteinG": 1.79,
+        "fatG": 0.2,
+        "carbsG": 24.01,
+        "fiberG": 1.0,
+        "sugarsG": 0.03,
+        "saturatedFatG": 0.023,
+        "sodiumMg": 19.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 176.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168914/nutrients"
+    },
+    "335240": {
+      "fdcId": "335240",
+      "name": "Bread, whole-wheat, commercially prepared",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 254.0,
+        "proteinG": 12.3,
+        "fatG": 3.55,
+        "carbsG": 43.1,
+        "fiberG": 6.0,
+        "sugarsG": 4.41,
+        "saturatedFatG": 0.732,
+        "sodiumMg": 450.0
+      },
+      "portions": [
+        {
+          "description": "1 slice",
+          "grams": 32.1
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/335240/nutrients"
+    },
+    "174924": {
+      "fdcId": "174924",
+      "name": "Bread, white, commercially prepared (includes soft bread crumbs)",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 266.0,
+        "proteinG": 8.85,
+        "fatG": 3.33,
+        "carbsG": 49.42,
+        "fiberG": 2.7,
+        "sugarsG": 5.67,
+        "saturatedFatG": 0.698,
+        "sodiumMg": 490.0
+      },
+      "portions": [
+        {
+          "description": "1 slice",
+          "grams": 29.0
+        },
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        },
+        {
+          "description": "1 cup, crumbs",
+          "grams": 45.0
+        },
+        {
+          "description": "1 cup, cubes",
+          "grams": 35.0
+        },
+        {
+          "description": "1 slice, large",
+          "grams": 30.0
+        },
+        {
+          "description": "1 slice",
+          "grams": 25.0
+        },
+        {
+          "description": "1 slice crust not eaten",
+          "grams": 12.0
+        },
+        {
+          "description": "1 slice, thin",
+          "grams": 20.0
+        },
+        {
+          "description": "1 slice thin, crust not eaten",
+          "grams": 9.0
+        },
+        {
+          "description": "1 slice, very thin",
+          "grams": 15.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/174924/nutrients"
+    },
+    "168931": {
+      "fdcId": "168931",
+      "name": "Rice, white, short-grain, raw, unenriched",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 358.0,
+        "proteinG": 6.5,
+        "fatG": 0.52,
+        "carbsG": 79.15,
+        "fiberG": null,
+        "sugarsG": null,
+        "saturatedFatG": 0.14,
+        "sodiumMg": 1.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 200.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168931/nutrients"
+    },
+    "168932": {
+      "fdcId": "168932",
+      "name": "Rice, white, short-grain, cooked, unenriched",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 130.0,
+        "proteinG": 2.36,
+        "fatG": 0.19,
+        "carbsG": 28.73,
+        "fiberG": null,
+        "sugarsG": null,
+        "saturatedFatG": 0.051,
+        "sodiumMg": 0.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 205.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168932/nutrients"
+    },
+    "168867": {
+      "fdcId": "168867",
+      "name": "Cornmeal, degermed, enriched, yellow",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 370.0,
+        "proteinG": 7.11,
+        "fatG": 1.75,
+        "carbsG": 79.45,
+        "fiberG": 3.9,
+        "sugarsG": 1.61,
+        "saturatedFatG": 0.22,
+        "sodiumMg": 7.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 157.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168867/nutrients"
+    },
+    "172790": {
+      "fdcId": "172790",
+      "name": "Puff pastry, frozen, ready-to-bake",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 551.0,
+        "proteinG": 7.3,
+        "fatG": 38.1,
+        "carbsG": 45.1,
+        "fiberG": 1.5,
+        "sugarsG": 0.74,
+        "saturatedFatG": 9.643,
+        "sodiumMg": 249.0
+      },
+      "portions": [
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        },
+        {
+          "description": "1 shell",
+          "grams": 47.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/172790/nutrients"
+    },
+    "168462": {
+      "fdcId": "168462",
+      "name": "Spinach, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 23.0,
+        "proteinG": 2.86,
+        "fatG": 0.39,
+        "carbsG": 3.63,
+        "fiberG": 2.2,
+        "sugarsG": 0.42,
+        "saturatedFatG": 0.063,
+        "sodiumMg": 79.0
+      },
+      "portions": [
+        {
+          "description": "1 cup",
+          "grams": 30.0
+        },
+        {
+          "description": "1 bunch",
+          "grams": 340.0
+        },
+        {
+          "description": "1 leaf",
+          "grams": 10.0
+        },
+        {
+          "description": "1 package (10 oz)",
+          "grams": 284.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168462/nutrients"
+    },
+    "2685570": {
+      "fdcId": "2685570",
+      "name": "Squash, winter, butternut, raw",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 41.7165,
+        "proteinG": 1.1487,
+        "fatG": 0.1675,
+        "carbsG": 10.5075,
+        "fiberG": 1.959,
+        "sugarsG": null,
+        "saturatedFatG": null,
+        "sodiumMg": 0.0
+      },
+      "portions": [],
+      "url": "https://fdc.nal.usda.gov/food-details/2685570/nutrients"
+    },
+    "169975": {
+      "fdcId": "169975",
+      "name": "Cabbage, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 25.0,
+        "proteinG": 1.28,
+        "fatG": 0.1,
+        "carbsG": 5.8,
+        "fiberG": 2.5,
+        "sugarsG": 3.2,
+        "saturatedFatG": 0.034,
+        "sodiumMg": 18.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, chopped",
+          "grams": 89.0
+        },
+        {
+          "description": "1 cup, shredded",
+          "grams": 70.0
+        },
+        {
+          "description": "1 head, large (about 7\" dia)",
+          "grams": 1248.0
+        },
+        {
+          "description": "1 leaf, large",
+          "grams": 33.0
+        },
+        {
+          "description": "1 head, medium (about 5-3/4\" dia)",
+          "grams": 908.0
+        },
+        {
+          "description": "1 leaf, medium",
+          "grams": 23.0
+        },
+        {
+          "description": "1 head, small (about 4-1/2\" dia)",
+          "grams": 714.0
+        },
+        {
+          "description": "1 leaf",
+          "grams": 15.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169975/nutrients"
+    },
+    "169146": {
+      "fdcId": "169146",
+      "name": "Beets, cooked, boiled, drained",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 44.0,
+        "proteinG": 1.68,
+        "fatG": 0.18,
+        "carbsG": 9.96,
+        "fiberG": 2.0,
+        "sugarsG": 7.96,
+        "saturatedFatG": 0.028,
+        "sodiumMg": 77.0
+      },
+      "portions": [
+        {
+          "description": "0.5 cup slices",
+          "grams": 85.0
+        },
+        {
+          "description": "2 beets (2\" dia, sphere)",
+          "grams": 100.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169146/nutrients"
+    },
+    "169276": {
+      "fdcId": "169276",
+      "name": "Radishes, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 16.0,
+        "proteinG": 0.68,
+        "fatG": 0.1,
+        "carbsG": 3.4,
+        "fiberG": 1.6,
+        "sugarsG": 1.86,
+        "saturatedFatG": 0.032,
+        "sodiumMg": 39.0
+      },
+      "portions": [
+        {
+          "description": "1 cup slices",
+          "grams": 116.0
+        },
+        {
+          "description": "1 large (1\" to 1-1/4\" dia)",
+          "grams": 9.0
+        },
+        {
+          "description": "1 medium (3/4\" to 1\" dia)",
+          "grams": 4.5
+        },
+        {
+          "description": "1 slice",
+          "grams": 1.0
+        },
+        {
+          "description": "1 small",
+          "grams": 2.0
+        },
+        {
+          "description": "0.5 cup slices",
+          "grams": 58.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169276/nutrients"
+    },
+    "169094": {
+      "fdcId": "169094",
+      "name": "Olives, ripe, canned (small-extra large)",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 116.0,
+        "proteinG": 0.84,
+        "fatG": 10.9,
+        "carbsG": 6.04,
+        "fiberG": 1.6,
+        "sugarsG": 0.0,
+        "saturatedFatG": 2.279,
+        "sodiumMg": 735.0
+      },
+      "portions": [
+        {
+          "description": "1 tbsp",
+          "grams": 8.4
+        },
+        {
+          "description": "1 large",
+          "grams": 4.4
+        },
+        {
+          "description": "1 small",
+          "grams": 3.2
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169094/nutrients"
+    },
+    "171688": {
+      "fdcId": "171688",
+      "name": "Apples, raw, with skin (Includes foods for USDA's Food Distribution Program)",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 52.0,
+        "proteinG": 0.26,
+        "fatG": 0.17,
+        "carbsG": 13.81,
+        "fiberG": 2.4,
+        "sugarsG": 10.39,
+        "saturatedFatG": 0.028,
+        "sodiumMg": 1.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, quartered or chopped",
+          "grams": 125.0
+        },
+        {
+          "description": "1 cup slices",
+          "grams": 109.0
+        },
+        {
+          "description": "1 large (3-1/4\" dia)",
+          "grams": 223.0
+        },
+        {
+          "description": "1 medium (3\" dia)",
+          "grams": 182.0
+        },
+        {
+          "description": "1 small (2-3/4\" dia)",
+          "grams": 149.0
+        },
+        {
+          "description": "1 extra small (2-1/2\" dia)",
+          "grams": 101.0
+        },
+        {
+          "description": "1 NLEA serving",
+          "grams": 242.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/171688/nutrients"
+    },
+    "173944": {
+      "fdcId": "173944",
+      "name": "Bananas, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 89.0,
+        "proteinG": 1.09,
+        "fatG": 0.33,
+        "carbsG": 22.84,
+        "fiberG": 2.6,
+        "sugarsG": 12.23,
+        "saturatedFatG": 0.112,
+        "sodiumMg": 1.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, mashed",
+          "grams": 225.0
+        },
+        {
+          "description": "1 cup, sliced",
+          "grams": 150.0
+        },
+        {
+          "description": "1 extra small (less than 6\" long)",
+          "grams": 81.0
+        },
+        {
+          "description": "1 small (6\" to 6-7/8\" long)",
+          "grams": 101.0
+        },
+        {
+          "description": "1 medium (7\" to 7-7/8\" long)",
+          "grams": 118.0
+        },
+        {
+          "description": "1 large (8\" to 8-7/8\" long)",
+          "grams": 136.0
+        },
+        {
+          "description": "1 extra large (9\" or longer)",
+          "grams": 152.0
+        },
+        {
+          "description": "1 NLEA serving",
+          "grams": 126.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/173944/nutrients"
+    },
+    "746773": {
+      "fdcId": "746773",
+      "name": "Pears, raw, bartlett",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 57.0,
+        "proteinG": 0.38,
+        "fatG": 0.16,
+        "carbsG": 15.1,
+        "fiberG": 3.1,
+        "sugarsG": 9.69,
+        "saturatedFatG": null,
+        "sodiumMg": 7.0
+      },
+      "portions": [
+        {
+          "description": "1 cup slices",
+          "grams": 140.0
+        },
+        {
+          "description": "1 each small",
+          "grams": 148.0
+        },
+        {
+          "description": "1 each medium",
+          "grams": 178.0
+        },
+        {
+          "description": "1 each large",
+          "grams": 230.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/746773/nutrients"
+    },
+    "169097": {
+      "fdcId": "169097",
+      "name": "Oranges, raw, all commercial varieties",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 47.0,
+        "proteinG": 0.94,
+        "fatG": 0.12,
+        "carbsG": 11.75,
+        "fiberG": 2.4,
+        "sugarsG": 9.35,
+        "saturatedFatG": 0.015,
+        "sodiumMg": 0.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, sections",
+          "grams": 180.0
+        },
+        {
+          "description": "1 large (3-1/16\" dia)",
+          "grams": 184.0
+        },
+        {
+          "description": "1 small (2-3/8\" dia)",
+          "grams": 96.0
+        },
+        {
+          "description": "1 fruit (2-5/8\" dia)",
+          "grams": 131.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169097/nutrients"
+    },
+    "327046": {
+      "fdcId": "327046",
+      "name": "Kiwifruit, green, raw",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 58.0,
+        "proteinG": 1.06,
+        "fatG": 0.44,
+        "carbsG": 14.0,
+        "fiberG": 3.0,
+        "sugarsG": 8.99,
+        "saturatedFatG": null,
+        "sodiumMg": 5.0
+      },
+      "portions": [],
+      "url": "https://fdc.nal.usda.gov/food-details/327046/nutrients"
+    },
+    "2346409": {
+      "fdcId": "2346409",
+      "name": "Strawberries, raw",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 32.6656,
+        "proteinG": 0.6406,
+        "fatG": 0.22,
+        "carbsG": 7.9644,
+        "fiberG": null,
+        "sugarsG": 4.862,
+        "saturatedFatG": null,
+        "sodiumMg": 0.0
+      },
+      "portions": [],
+      "url": "https://fdc.nal.usda.gov/food-details/2346409/nutrients"
+    },
+    "2346411": {
+      "fdcId": "2346411",
+      "name": "Blueberries, raw",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 57.3846,
+        "proteinG": 0.7031,
+        "fatG": 0.3063,
+        "carbsG": 14.5718,
+        "fiberG": null,
+        "sugarsG": 9.356,
+        "saturatedFatG": null,
+        "sodiumMg": 0.0
+      },
+      "portions": [],
+      "url": "https://fdc.nal.usda.gov/food-details/2346411/nutrients"
+    },
+    "168209": {
+      "fdcId": "168209",
+      "name": "Raspberries, frozen, red, unsweetened",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 56.0,
+        "proteinG": 1.15,
+        "fatG": 0.81,
+        "carbsG": 12.55,
+        "fiberG": 4.3,
+        "sugarsG": 6.54,
+        "saturatedFatG": 0.064,
+        "sodiumMg": 4.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, unthawed",
+          "grams": 140.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168209/nutrients"
+    },
+    "169910": {
+      "fdcId": "169910",
+      "name": "Mangos, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 60.0,
+        "proteinG": 0.82,
+        "fatG": 0.38,
+        "carbsG": 14.98,
+        "fiberG": 1.6,
+        "sugarsG": 13.66,
+        "saturatedFatG": 0.092,
+        "sodiumMg": 1.0
+      },
+      "portions": [
+        {
+          "description": "1 cup pieces",
+          "grams": 165.0
+        },
+        {
+          "description": "1 fruit without refuse",
+          "grams": 336.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169910/nutrients"
+    },
+    "168155": {
+      "fdcId": "168155",
+      "name": "Limes, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 30.0,
+        "proteinG": 0.7,
+        "fatG": 0.2,
+        "carbsG": 10.54,
+        "fiberG": 2.8,
+        "sugarsG": 1.69,
+        "saturatedFatG": 0.022,
+        "sodiumMg": 2.0
+      },
+      "portions": [
+        {
+          "description": "1 fruit (2\" dia)",
+          "grams": 67.0
+        },
+        {
+          "description": "1 NLEA serving",
+          "grams": 67.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168155/nutrients"
+    },
+    "168165": {
+      "fdcId": "168165",
+      "name": "Raisins, dark, seedless (Includes foods for USDA's Food Distribution Program)",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 299.0,
+        "proteinG": 3.3,
+        "fatG": 0.25,
+        "carbsG": 79.32,
+        "fiberG": 4.5,
+        "sugarsG": 65.18,
+        "saturatedFatG": 0.094,
+        "sodiumMg": 26.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, packed",
+          "grams": 165.0
+        },
+        {
+          "description": "1 cup (not packed)",
+          "grams": 145.0
+        },
+        {
+          "description": "1 miniature box (.5 oz)",
+          "grams": 14.0
+        },
+        {
+          "description": "1 small box (1.5 oz)",
+          "grams": 43.0
+        },
+        {
+          "description": "50 raisins",
+          "grams": 26.0
+        },
+        {
+          "description": "1 oz (60 raisins)",
+          "grams": 28.35
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168165/nutrients"
+    },
+    "746784": {
+      "fdcId": "746784",
+      "name": "Sugars, granulated",
+      "source": "USDA_FOUNDATION",
+      "sourceLabel": "USDA FoodData Central – Foundation Foods",
+      "sourceVersion": "Foundation Foods",
+      "per100g": {
+        "energyKcal": 385.0,
+        "proteinG": 0.0,
+        "fatG": 0.32,
+        "carbsG": 99.6,
+        "fiberG": null,
+        "sugarsG": 99.8,
+        "saturatedFatG": null,
+        "sodiumMg": 1.0
+      },
+      "portions": [
+        {
+          "description": "1 teaspoon",
+          "grams": 4.0
+        },
+        {
+          "description": "1 cup",
+          "grams": 188.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/746784/nutrients"
+    },
+    "170273": {
+      "fdcId": "170273",
+      "name": "Chocolate, dark, 70-85% cacao solids",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 598.0,
+        "proteinG": 7.79,
+        "fatG": 42.63,
+        "carbsG": 45.9,
+        "fiberG": 10.9,
+        "sugarsG": 23.99,
+        "saturatedFatG": 24.489,
+        "sodiumMg": 20.0
+      },
+      "portions": [
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        },
+        {
+          "description": "1 bar",
+          "grams": 101.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170273/nutrients"
+    },
+    "168774": {
+      "fdcId": "168774",
+      "name": "Cocoa, dry powder, unsweetened, HERSHEY'S European Style Cocoa",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 410.0,
+        "proteinG": 20.0,
+        "fatG": 10.0,
+        "carbsG": 60.0,
+        "fiberG": 20.0,
+        "sugarsG": 0.0,
+        "saturatedFatG": 0.0,
+        "sodiumMg": 0.0
+      },
+      "portions": [
+        {
+          "description": "1 tbsp",
+          "grams": 5.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/168774/nutrients"
+    },
+    "171320": {
+      "fdcId": "171320",
+      "name": "Spices, cinnamon, ground",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 247.0,
+        "proteinG": 3.99,
+        "fatG": 1.24,
+        "carbsG": 80.59,
+        "fiberG": 53.1,
+        "sugarsG": 2.17,
+        "saturatedFatG": 0.345,
+        "sodiumMg": 10.0
+      },
+      "portions": [
+        {
+          "description": "1 tsp",
+          "grams": 2.6
+        },
+        {
+          "description": "1 tbsp",
+          "grams": 7.8
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/171320/nutrients"
+    },
+    "170567": {
+      "fdcId": "170567",
+      "name": "Nuts, almonds",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 579.0,
+        "proteinG": 21.15,
+        "fatG": 49.93,
+        "carbsG": 21.55,
+        "fiberG": 12.5,
+        "sugarsG": 4.35,
+        "saturatedFatG": 3.802,
+        "sodiumMg": 1.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, whole",
+          "grams": 143.0
+        },
+        {
+          "description": "1 cup, sliced",
+          "grams": 92.0
+        },
+        {
+          "description": "1 cup, slivered",
+          "grams": 108.0
+        },
+        {
+          "description": "1 cup, ground",
+          "grams": 95.0
+        },
+        {
+          "description": "1 oz (23 whole kernels)",
+          "grams": 28.35
+        },
+        {
+          "description": "1 almond",
+          "grams": 1.2
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170567/nutrients"
+    },
+    "170187": {
+      "fdcId": "170187",
+      "name": "Nuts, walnuts, english",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 654.0,
+        "proteinG": 15.23,
+        "fatG": 65.21,
+        "carbsG": 13.71,
+        "fiberG": 6.7,
+        "sugarsG": 2.61,
+        "saturatedFatG": 6.126,
+        "sodiumMg": 2.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, chopped",
+          "grams": 117.0
+        },
+        {
+          "description": "1 cup, ground",
+          "grams": 80.0
+        },
+        {
+          "description": "1 cup, in shell, edible yield (7 nuts)",
+          "grams": 28.0
+        },
+        {
+          "description": "1 cup shelled (50 halves)",
+          "grams": 100.0
+        },
+        {
+          "description": "1 cup pieces or chips",
+          "grams": 120.0
+        },
+        {
+          "description": "1 oz (14 halves)",
+          "grams": 28.35
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170187/nutrients"
+    },
+    "172470": {
+      "fdcId": "172470",
+      "name": "Peanut butter, smooth style, without salt",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 598.0,
+        "proteinG": 22.21,
+        "fatG": 51.36,
+        "carbsG": 22.31,
+        "fiberG": 5.0,
+        "sugarsG": 10.49,
+        "saturatedFatG": 10.325,
+        "sodiumMg": 17.0
+      },
+      "portions": [
+        {
+          "description": "2 tbsp",
+          "grams": 32.0
+        },
+        {
+          "description": "1 cup",
+          "grams": 258.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/172470/nutrients"
+    },
+    "169641": {
+      "fdcId": "169641",
+      "name": "Jams and preserves",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 278.0,
+        "proteinG": 0.37,
+        "fatG": 0.07,
+        "carbsG": 68.86,
+        "fiberG": 1.1,
+        "sugarsG": 48.5,
+        "saturatedFatG": 0.01,
+        "sodiumMg": 32.0
+      },
+      "portions": [
+        {
+          "description": "1 tbsp",
+          "grams": 20.0
+        },
+        {
+          "description": "1 packet (0.5 oz)",
+          "grams": 14.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169641/nutrients"
+    },
+    "170554": {
+      "fdcId": "170554",
+      "name": "Seeds, chia seeds, dried",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 486.0,
+        "proteinG": 16.54,
+        "fatG": 30.74,
+        "carbsG": 42.12,
+        "fiberG": 34.4,
+        "sugarsG": null,
+        "saturatedFatG": 3.33,
+        "sodiumMg": 16.0
+      },
+      "portions": [
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170554/nutrients"
+    },
+    "170170": {
+      "fdcId": "170170",
+      "name": "Nuts, coconut meat, dried (desiccated), not sweetened",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 660.0,
+        "proteinG": 6.88,
+        "fatG": 64.53,
+        "carbsG": 23.65,
+        "fiberG": 16.3,
+        "sugarsG": 7.35,
+        "saturatedFatG": 57.218,
+        "sodiumMg": 37.0
+      },
+      "portions": [
+        {
+          "description": "1 oz",
+          "grams": 28.35
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170170/nutrients"
+    },
+    "170938": {
+      "fdcId": "170938",
+      "name": "Spices, thyme, dried",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 276.0,
+        "proteinG": 9.11,
+        "fatG": 7.43,
+        "carbsG": 63.94,
+        "fiberG": 37.0,
+        "sugarsG": 1.71,
+        "saturatedFatG": 2.73,
+        "sodiumMg": 55.0
+      },
+      "portions": [
+        {
+          "description": "1 tsp, leaves",
+          "grams": 1.0
+        },
+        {
+          "description": "1 tbsp, leaves",
+          "grams": 2.7
+        },
+        {
+          "description": "1 tsp, ground",
+          "grams": 1.4
+        },
+        {
+          "description": "1 tbsp, ground",
+          "grams": 4.3
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170938/nutrients"
+    },
+    "171328": {
+      "fdcId": "171328",
+      "name": "Spices, oregano, dried",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 265.0,
+        "proteinG": 9.0,
+        "fatG": 4.28,
+        "carbsG": 68.92,
+        "fiberG": 42.5,
+        "sugarsG": 4.09,
+        "saturatedFatG": 1.551,
+        "sodiumMg": 25.0
+      },
+      "portions": [
+        {
+          "description": "1 tsp, leaves",
+          "grams": 1.0
+        },
+        {
+          "description": "1 tsp, ground",
+          "grams": 1.8
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/171328/nutrients"
+    },
+    "169994": {
+      "fdcId": "169994",
+      "name": "Chives, raw",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 30.0,
+        "proteinG": 3.27,
+        "fatG": 0.73,
+        "carbsG": 4.35,
+        "fiberG": 2.5,
+        "sugarsG": 1.85,
+        "saturatedFatG": 0.146,
+        "sodiumMg": 3.0
+      },
+      "portions": [
+        {
+          "description": "1 tbsp chopped",
+          "grams": 3.0
+        },
+        {
+          "description": "1 tsp chopped",
+          "grams": 1.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/169994/nutrients"
+    },
+    "173475": {
+      "fdcId": "173475",
+      "name": "Spearmint, fresh",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 44.0,
+        "proteinG": 3.29,
+        "fatG": 0.73,
+        "carbsG": 8.41,
+        "fiberG": 6.8,
+        "sugarsG": null,
+        "saturatedFatG": 0.191,
+        "sodiumMg": 30.0
+      },
+      "portions": [
+        {
+          "description": "2 leaves",
+          "grams": 0.3
+        },
+        {
+          "description": "2 tbsp",
+          "grams": 11.4
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/173475/nutrients"
+    },
+    "171326": {
+      "fdcId": "171326",
+      "name": "Spices, nutmeg, ground",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 525.0,
+        "proteinG": 5.84,
+        "fatG": 36.31,
+        "carbsG": 49.29,
+        "fiberG": 20.8,
+        "sugarsG": 2.99,
+        "saturatedFatG": 25.94,
+        "sodiumMg": 16.0
+      },
+      "portions": [
+        {
+          "description": "1 tsp",
+          "grams": 2.2
+        },
+        {
+          "description": "1 tbsp",
+          "grams": 7.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/171326/nutrients"
     }
   }
 }

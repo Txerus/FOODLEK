@@ -94,11 +94,6 @@ export function MealsStep() {
           : ""}
         .
       </p>
-      {schedule.snack.length > 0 || schedule.breakfast.length > 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Le catalogue compte pour l'instant peu de petits-déjeuners et aucune collation : ces repas pourront rester vides.
-        </p>
-      ) : null}
       <FieldError errors={[formState.errors.schedule as { message?: string } | undefined]} />
     </div>
   );

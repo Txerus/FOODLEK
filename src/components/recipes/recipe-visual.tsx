@@ -61,6 +61,48 @@ const FOOD_COLORS: Record<string, string> = {
   feta: "#fbf8f0",
   mozzarella: "#fdfbf5",
   "yaourt-grec-0": "#fbfaf6",
+  "cuisse-de-poulet": "#d9a066",
+  "jambon-blanc": "#f2b8b0",
+  lardons: "#c9695a",
+  crevettes: "#f39a7b",
+  "sardines-huile": "#9aa3a8",
+  bavette: "#7d3b2a",
+  "filet-mignon-porc": "#e8b8a0",
+  "lentilles-vertes": "#6b6a3a",
+  "haricots-blancs": "#efe6d2",
+  "yaourt-nature": "#fbfaf6",
+  ricotta: "#faf6ee",
+  "chevre-frais": "#f8f5ee",
+  "flocons-avoine": "#dcc79a",
+  farine: "#f4ecdc",
+  boulgour: "#d4b47a",
+  "nouilles-de-riz": "#f3eee2",
+  "riz-rond": "#f7f3ea",
+  polenta: "#f2cf5b",
+  "pain-complet": "#a9774a",
+  "pain-de-mie": "#e9cf9d",
+  "pate-feuilletee": "#e6b86a",
+  "epinards-frais": "#3d7a3a",
+  butternut: "#f0a04b",
+  "chou-blanc": "#dfe8c8",
+  "betterave-cuite": "#8a1e3c",
+  radis: "#d9455f",
+  "olives-noires": "#3b3337",
+  pomme: "#d6493a",
+  banane: "#f3d35b",
+  poire: "#c9d36a",
+  orange: "#f39b2d",
+  kiwi: "#8db34a",
+  fraises: "#e0364a",
+  myrtilles: "#4a4f8f",
+  "framboises-surgelees": "#d63a5c",
+  mangue: "#f6b13a",
+  "chocolat-noir": "#4a2c20",
+  noix: "#a7784a",
+  "beurre-cacahuete": "#b9803f",
+  "graines-chia": "#5b5750",
+  "coco-rapee": "#fbf8f1",
+  "raisins-secs": "#5e3a3a",
 };
 
 const BACKDROPS = ["#f4ead8", "#eef0e2", "#f6e3d7", "#e8efe9", "#f3ecdf", "#efe7ee"];
@@ -88,10 +130,13 @@ function Illustration({ recipe }: { recipe: Recipe }) {
   const starch = colorsFor(recipe, "starch");
   const veg = colorsFor(recipe, "vegetable");
   const garnish = colorsFor(recipe, "garnish");
+  // Desserts: chocolate, nuts… carry the dish, so they get their own part of the plate.
+  const fat = colorsFor(recipe, "fat");
   const groups = [
     { colors: starch, weight: 1 },
     { colors: protein, weight: 1 },
     { colors: veg, weight: 1.2 },
+    { colors: fat, weight: 0.8 },
   ].filter((g) => g.colors.length > 0);
   const total = groups.reduce((s, g) => s + g.weight, 0) || 1;
   const start = rng() * Math.PI * 2;
@@ -103,7 +148,14 @@ function Illustration({ recipe }: { recipe: Recipe }) {
   const shapes: React.ReactNode[] = [];
   groups.forEach((g, gi) => {
     const span = (g.weight / total) * Math.PI * 2;
-    shapes.push(<path key={`w${gi}`} d={wedge(cx, cy, r, angle, angle + span)} fill={g.colors[0]} />);
+    // A single group fills the whole plate (an arc from a point to itself draws nothing).
+    shapes.push(
+      groups.length === 1 ? (
+        <circle key={`w${gi}`} cx={cx} cy={cy} r={r} fill={g.colors[0]} />
+      ) : (
+        <path key={`w${gi}`} d={wedge(cx, cy, r, angle, angle + span)} fill={g.colors[0]} />
+      ),
+    );
     // Texture: pieces of the other foods of the group, scattered inside the wedge.
     const count = 10 + Math.floor(rng() * 8);
     for (let k = 0; k < count; k++) {
