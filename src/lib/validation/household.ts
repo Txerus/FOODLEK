@@ -28,6 +28,8 @@ const memberShape = z.object({
     weightKg: z.number().min(10).max(350).nullable(),
     activity: z.enum(ACTIVITY_LEVELS),
     goal: z.enum(GOALS),
+    targetWeightKg: z.number().min(25).max(350).nullable(),
+    goalWeeks: z.number().int().min(2).max(156).nullable(),
     highProtein: z.boolean(),
     appetite: z.enum(APPETITES),
     specialSituations: z.array(z.enum(SPECIAL_SITUATIONS)),
@@ -43,6 +45,14 @@ export const memberSchema = memberShape.superRefine((m, ctx) => {
       if (m.birthYear === null) ctx.addIssue({ code: "custom", path: ["birthYear"], message: "Nécessaire au calcul détaillé" });
       if (m.heightCm === null) ctx.addIssue({ code: "custom", path: ["heightCm"], message: "Nécessaire au calcul détaillé" });
       if (m.weightKg === null) ctx.addIssue({ code: "custom", path: ["weightKg"], message: "Nécessaire au calcul détaillé" });
+    }
+    if (m.profileMode === "detailed" && m.targetWeightKg !== null && m.weightKg !== null) {
+      if (m.goal === "lose" && m.targetWeightKg >= m.weightKg) {
+        ctx.addIssue({ code: "custom", path: ["targetWeightKg"], message: "Le poids souhaité doit être inférieur au poids actuel" });
+      }
+      if (m.goal === "gain" && m.targetWeightKg <= m.weightKg) {
+        ctx.addIssue({ code: "custom", path: ["targetWeightKg"], message: "Le poids souhaité doit être supérieur au poids actuel" });
+      }
     }
     if (m.isChild && m.goal === "lose") {
       ctx.addIssue({ code: "custom", path: ["goal"], message: "Pas d'objectif de perte de poids pour un enfant" });
@@ -102,6 +112,8 @@ export function defaultMember(index: number, isChild = false): MemberInput {
     weightKg: null,
     activity: "light",
     goal: "none",
+    targetWeightKg: null,
+    goalWeeks: null,
     highProtein: false,
     appetite: "normal",
     specialSituations: [],

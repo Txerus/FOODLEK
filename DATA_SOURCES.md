@@ -22,11 +22,13 @@ Recherche menée en septembre 2026. Règle : aucune donnée inventée ; toute do
 
 Position : pas de scraping de sites marchands, pas de contournement de protections anti-robot. Chaque enseigne est représentée par un adaptateur `RetailProvider` qui répond explicitement `unavailable` avec la raison ; il passera à `live` dès qu'un accès autorisé (API officielle, partenaire, flux ouvert) sera obtenu.
 
+**Comment fait Jow ?** Jow n'extrait pas les sites marchands : il a des **partenariats commerciaux** avec les enseignes (Carrefour, Auchan, Monoprix, Intermarché, Chronodrive, E.Leclerc…), qui lui donnent accès à leur catalogue et à l'ajout au panier ; l'utilisateur relie son compte enseigne sur une page de connexion de l'enseigne. FOODLEK ne peut pas reproduire cela sans accord. Ce qui est en place, sans lire aucune donnée des enseignes : un lien vers la page de recherche publique de l'enseigne choisie pour chaque produit (`src/lib/retailer-links.ts`, formats d'URL non garantis, à revérifier) et la copie de la liste.
+
 **Ce qu'il faut pour des prix « Drive » réels** : un accord partenaire avec au moins une enseigne (ou un agrégateur disposant de droits), puis un adaptateur. Décision commerciale qui revient au porteur du projet.
 
 ## Recettes
 
-Aucun jeu de données de recettes françaises sous licence réutilisable n'a été retenu : les grands sites (Jow, Marmiton…) sont protégés. Les 26 recettes du seed sont **originales**, rédigées avec assistance IA, converties en structure déterministe et validées automatiquement (`src/domain/recipes/validation.ts`) : ingrédients connus, quantités convertibles, source de protéines pour les plats. Leurs valeurs nutritionnelles sont recalculées à partir des ingrédients. Une relecture culinaire humaine reste recommandée. Aucune image n'est utilisée faute de droits établis.
+Aucun jeu de données de recettes françaises sous licence réutilisable n'a été retenu : les grands sites (Jow, Marmiton…) sont protégés. Les 26 recettes du seed sont **originales**, rédigées avec assistance IA, converties en structure déterministe et validées automatiquement (`src/domain/recipes/validation.ts`) : ingrédients connus, quantités convertibles, source de protéines pour les plats. Leurs valeurs nutritionnelles sont recalculées à partir des ingrédients. Une relecture culinaire humaine reste recommandée. Aucune photo tierce n'est utilisée faute de droits établis : chaque recette reçoit une **illustration originale** dessinée à partir de ses ingrédients (`src/components/recipes/recipe-visual.tsx`, couleurs de présentation uniquement). Pour ajouter une photo : la placer dans `public/recipes/` et la déclarer dans `data/recipe-images.json` avec son crédit (photos personnelles ou licence libre uniquement).
 
 ## Données de démonstration
 

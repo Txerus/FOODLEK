@@ -87,6 +87,36 @@ describe("computeTargets", () => {
   });
 });
 
+describe("target weight and timeframe", () => {
+  it("slows down an unsafe pace and projects a realistic duration", () => {
+    const t = computeTargets({ ...alex, targetWeightKg: 80, goalWeeks: 12 }, TODAY);
+    expect(t.weightPlan?.dailyDeltaKcal).toBe(-750);
+    expect(t.weightPlan?.slowedDown).toBe(true);
+    expect(t.weightPlan?.projectedWeeks).toBe(Math.ceil(10 / ((750 * 7) / 7700)));
+    expect(t.warnings.join(" ")).toMatch(/rythme sûr/);
+    expect(t.energyKcal).toBe(Math.round(1890 * 1.55 - 750));
+  });
+
+  it("follows a gentle requested pace", () => {
+    const t = computeTargets({ ...alex, targetWeightKg: 80, goalWeeks: 52 }, TODAY);
+    expect(t.weightPlan?.slowedDown).toBe(false);
+    expect(t.weightPlan?.dailyDeltaKcal).toBe(-Math.round((10 * 7700) / (52 * 7)));
+    expect(t.weightPlan?.projectedWeeks).toBeGreaterThanOrEqual(51);
+  });
+
+  it("never targets a BMI below 18.5", () => {
+    const t = computeTargets({ ...camille, goal: "lose", targetWeightKg: 45, goalWeeks: 52 }, TODAY);
+    expect(t.weightPlan?.targetKg).toBe(Math.ceil(18.5 * 1.65 * 1.65));
+    expect(t.warnings.join(" ")).toMatch(/IMC inférieur à 18,5/);
+  });
+
+  it("plans a moderate weight gain", () => {
+    const t = computeTargets({ ...camille, goal: "gain", targetWeightKg: 64, goalWeeks: 8 }, TODAY);
+    expect(t.weightPlan?.dailyDeltaKcal).toBeGreaterThan(0);
+    expect(t.weightPlan?.slowedDown).toBe(true);
+  });
+});
+
 describe("mealTarget", () => {
   it("splits the daily target by meal", () => {
     const t = computeTargets(alex, TODAY);

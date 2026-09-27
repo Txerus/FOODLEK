@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { totalMinutes } from "@/domain/catalog/types";
 import { recipeNutritionPerServing } from "@/domain/recipes/nutrition";
 import { formatMinutes } from "@/lib/format";
@@ -39,7 +40,8 @@ export default async function PublicRecipesPage() {
           const n = recipeNutritionPerServing(r, catalog.ingredientIndex).nutrients;
           return (
             <li key={r.slug}>
-              <Link href={`/recettes/${r.slug}`} className="surface group flex h-full flex-col gap-2 p-5 transition-shadow hover:shadow-lift">
+              <Link href={`/recettes/${r.slug}`} className="surface group flex h-full flex-col gap-2 overflow-hidden p-5 transition-shadow hover:shadow-lift">
+                <RecipeVisual recipe={r} className="-mx-5 -mt-5 mb-2 rounded-none" />
                 <span className="text-xs text-muted-foreground">
                   {formatMinutes(totalMinutes(r))} · {Math.round(n.energyKcal)} kcal · {Math.round(n.proteinG)} g de protéines
                 </span>

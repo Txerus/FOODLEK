@@ -11,8 +11,8 @@ import { computeMemberPortion } from "@/domain/portions/portions";
 const REFERENCE_DATE = new Date("2026-09-01T12:00:00Z");
 
 export const EXAMPLE_PROFILES: MemberProfile[] = [
-  { id: "a", name: "Alex", mode: "detailed", sex: "male", birthYear: 1998, heightCm: 180, weightKg: 90, activity: "moderate", goal: "lose", highProtein: true, appetite: "normal", specialSituations: [] },
-  { id: "c", name: "Camille", mode: "detailed", sex: "female", birthYear: 1999, heightCm: 165, weightKg: 60, activity: "light", goal: "maintain", highProtein: false, appetite: "normal", specialSituations: [] },
+  { id: "a", name: "Alex", mode: "detailed", sex: "male", birthYear: 1998, heightCm: 180, weightKg: 90, activity: "moderate", goal: "lose", targetWeightKg: null, goalWeeks: null, highProtein: true, appetite: "normal", specialSituations: [] },
+  { id: "c", name: "Camille", mode: "detailed", sex: "female", birthYear: 1999, heightCm: 165, weightKg: 60, activity: "light", goal: "maintain", targetWeightKg: null, goalWeeks: null, highProtein: false, appetite: "normal", specialSituations: [] },
 ];
 
 export function landingExample() {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { Button } from "@/components/ui/button";
 import { recipeAllergens } from "@/domain/catalog/diets";
 import { formatIngredientAmount } from "@/domain/catalog/format";
@@ -106,6 +107,7 @@ export default async function PublicRecipePage({ params }: PageProps<"/recettes/
           </li>
         </ol>
       </nav>
+      <RecipeVisual recipe={recipe} priority className="aspect-[16/8]" />
       <header className="flex flex-col gap-4">
         <h1 className="font-display text-4xl font-semibold text-balance sm:text-5xl">{recipe.title}</h1>
         <p className="text-lg text-muted-foreground">{recipe.description}</p>

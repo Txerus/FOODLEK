@@ -1,5 +1,6 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   date,
   index,
@@ -96,7 +97,8 @@ export const rateLimit = pgTable("rate_limit", {
   id: text().primaryKey(),
   key: text().notNull().unique(),
   count: integer().notNull(),
-  lastRequest: integer().notNull(),
+  // Milliseconds since the epoch: does not fit in a 32-bit integer.
+  lastRequest: bigint({ mode: "number" }).notNull(),
 });
 
 // ---------------------------------------------------------------------------
@@ -182,6 +184,8 @@ export const householdMembers = pgTable(
     weightKg: real(),
     activity: text().notNull().default("light"),
     goal: text().notNull().default("none"),
+    targetWeightKg: real(),
+    goalWeeks: integer(),
     highProtein: boolean().notNull().default(false),
     appetite: text().notNull().default("normal"),
     specialSituations: text().array().notNull().default(sql`ARRAY[]::text[]`),

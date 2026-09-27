@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { PersonDot } from "@/components/foodlek/person";
 import { QualityBadge } from "@/components/foodlek/quality-badge";
 import { AddToWeek } from "@/components/recipes/add-to-week";
+import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { NutritionTable } from "@/components/recipes/nutrition-table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,8 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
           </Link>
         </Button>
       </div>
+
+      <RecipeVisual recipe={recipe} priority className="aspect-[16/7] max-h-80" />
 
       <header className="flex flex-col gap-4">
         {slot ? (

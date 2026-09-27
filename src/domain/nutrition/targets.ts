@@ -40,9 +40,26 @@ export interface MemberProfile {
   weightKg: number | null;
   activity: ActivityLevel;
   goal: Goal;
+  /** Desired weight, for a weight-loss or weight-gain goal. */
+  targetWeightKg: number | null;
+  /** Desired time to reach it, in weeks. */
+  goalWeeks: number | null;
   highProtein: boolean;
   appetite: Appetite;
   specialSituations: SpecialSituation[];
+}
+
+export interface WeightPlan {
+  currentKg: number;
+  targetKg: number;
+  /** Negative for a deficit. */
+  dailyDeltaKcal: number;
+  weeklyChangeKg: number;
+  /** Weeks needed at the applied pace (estimate). */
+  projectedWeeks: number;
+  requestedWeeks: number | null;
+  /** The requested pace was slowed down by a safety limit. */
+  slowedDown: boolean;
 }
 
 export type TargetMode = "calculated" | "simplified" | "protected";
@@ -61,6 +78,8 @@ export interface NutritionTargets {
   maintenanceKcal: number | null;
   /** Effective goal after guardrails (a weight-loss goal can be neutralised). */
   effectiveGoal: Goal;
+  /** Pace and projection when a target weight is given. */
+  weightPlan: WeightPlan | null;
   warnings: string[];
   explanation: string[];
 }
@@ -117,6 +136,7 @@ function simplifiedTargets(
     restingKcal: null,
     maintenanceKcal: null,
     effectiveGoal: mode === "protected" ? "none" : profile.goal === "lose" ? "none" : profile.goal,
+    weightPlan: null,
     warnings,
     explanation,
   };
@@ -185,22 +205,85 @@ export function computeTargets(
   let effectiveGoal: Goal = profile.goal;
   const currentBmi = bmi(weight, height);
 
+  let weightPlan: WeightPlan | null = null;
+  const floor = Math.max(resting, sex === "female" ? config.loss.minKcalFemale : config.loss.minKcalMale);
+  const minHealthyKg = 18.5 * (height / 100) ** 2;
+
   if (profile.goal === "lose") {
     if (currentBmi < 18.5) {
       effectiveGoal = "maintain";
       warnings.push("L'IMC calculé est inférieur à 18,5 : nous n'appliquons pas de déficit. Parlez-en à un professionnel de santé.");
+    } else if (profile.targetWeightKg !== null && profile.targetWeightKg < weight) {
+      let target = profile.targetWeightKg;
+      if (target < minHealthyKg) {
+        target = Math.ceil(minHealthyKg);
+        warnings.push(
+          `Le poids souhaité correspond à un IMC inférieur à 18,5. FOODLEK vise au plus ${target} kg ; au-delà, parlez-en à un professionnel de santé.`,
+        );
+      }
+      const toLose = weight - target;
+      const maxWeekly = Math.min(weight * config.loss.maxWeeklyRatio, config.loss.maxWeeklyKg);
+      const maxDeficit = Math.min(config.loss.maxDeficitWithTargetKcal, maintenance - floor);
+      const defaultDeficit = Math.min(maintenance * config.loss.deficitRatio, config.loss.maxDeficitKcal);
+      const requestedDeficit =
+        profile.goalWeeks && profile.goalWeeks > 0 ? (toLose * config.kcalPerKg) / (profile.goalWeeks * 7) : defaultDeficit;
+      const deficit = Math.max(0, Math.min(requestedDeficit, (maxWeekly * config.kcalPerKg) / 7, maxDeficit));
+      energy = maintenance - deficit;
+      const weeklyChangeKg = (deficit * 7) / config.kcalPerKg;
+      weightPlan = {
+        currentKg: weight,
+        targetKg: target,
+        dailyDeltaKcal: -Math.round(deficit),
+        weeklyChangeKg: Math.round(weeklyChangeKg * 100) / 100,
+        projectedWeeks: weeklyChangeKg > 0 ? Math.ceil(toLose / weeklyChangeKg) : 0,
+        requestedWeeks: profile.goalWeeks,
+        slowedDown: deficit < requestedDeficit - 1,
+      };
+      explanation.push(
+        `Objectif ${target} kg : déficit de ${Math.round(deficit)} kcal/jour, soit environ ${weightPlan.weeklyChangeKg.toLocaleString("fr-FR")} kg par semaine et ${weightPlan.projectedWeeks} semaines estimées.`,
+      );
+      if (weightPlan.slowedDown && profile.goalWeeks) {
+        warnings.push(
+          `Atteindre ${target} kg en ${profile.goalWeeks} semaines demanderait de perdre plus de ${maxWeekly.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} kg par semaine ou de manger trop peu. FOODLEK garde un rythme sûr : comptez plutôt ${weightPlan.projectedWeeks} semaines.`,
+        );
+      }
     } else {
       const deficit = Math.min(maintenance * config.loss.deficitRatio, config.loss.maxDeficitKcal);
-      const floor = Math.max(resting, sex === "female" ? config.loss.minKcalFemale : config.loss.minKcalMale);
       energy = Math.max(maintenance - deficit, floor);
       explanation.push(
         `Objectif perte de poids : déficit modéré de ${Math.round(maintenance - energy)} kcal/jour (plafonné à ${config.loss.maxDeficitKcal} kcal, jamais sous ${Math.round(floor)} kcal).`,
       );
     }
+    if (effectiveGoal === "lose" && energy < floor) energy = floor;
   } else if (profile.goal === "gain") {
-    const surplus = Math.min(maintenance * config.gain.surplusRatio, config.gain.maxSurplusKcal);
-    energy = maintenance + surplus;
-    explanation.push(`Objectif prise de masse : surplus modéré de ${Math.round(surplus)} kcal/jour.`);
+    const defaultSurplus = Math.min(maintenance * config.gain.surplusRatio, config.gain.maxSurplusKcal);
+    if (profile.targetWeightKg !== null && profile.targetWeightKg > weight) {
+      const toGain = profile.targetWeightKg - weight;
+      const maxSurplus = (weight * config.gain.maxWeeklyRatio * config.kcalPerKg) / 7;
+      const requested =
+        profile.goalWeeks && profile.goalWeeks > 0 ? (toGain * config.kcalPerKg) / (profile.goalWeeks * 7) : defaultSurplus;
+      const surplus = Math.min(requested, maxSurplus, config.gain.maxSurplusKcal * 1.5);
+      energy = maintenance + surplus;
+      const weeklyChangeKg = (surplus * 7) / config.kcalPerKg;
+      weightPlan = {
+        currentKg: weight,
+        targetKg: profile.targetWeightKg,
+        dailyDeltaKcal: Math.round(surplus),
+        weeklyChangeKg: Math.round(weeklyChangeKg * 100) / 100,
+        projectedWeeks: weeklyChangeKg > 0 ? Math.ceil(toGain / weeklyChangeKg) : 0,
+        requestedWeeks: profile.goalWeeks,
+        slowedDown: surplus < requested - 1,
+      };
+      explanation.push(
+        `Objectif ${profile.targetWeightKg} kg : surplus de ${Math.round(surplus)} kcal/jour, environ ${weightPlan.weeklyChangeKg.toLocaleString("fr-FR")} kg par semaine et ${weightPlan.projectedWeeks} semaines estimées.`,
+      );
+      if (weightPlan.slowedDown && profile.goalWeeks) {
+        warnings.push(`Rythme demandé trop rapide pour une prise de masse de qualité : comptez plutôt ${weightPlan.projectedWeeks} semaines.`);
+      }
+    } else {
+      energy = maintenance + defaultSurplus;
+      explanation.push(`Objectif prise de masse : surplus modéré de ${Math.round(defaultSurplus)} kcal/jour.`);
+    }
   }
 
   // Protein, computed on an adjusted weight above a BMI threshold.
@@ -230,6 +313,7 @@ export function computeTargets(
     restingKcal: Math.round(resting),
     maintenanceKcal: Math.round(maintenance),
     effectiveGoal,
+    weightPlan,
     warnings,
     explanation,
   };

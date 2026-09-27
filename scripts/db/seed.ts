@@ -267,6 +267,8 @@ async function seedDemoAccount() {
         weightKg: 90,
         activity: "moderate",
         goal: "lose",
+        targetWeightKg: 80,
+        goalWeeks: 24,
         highProtein: true,
       },
       {

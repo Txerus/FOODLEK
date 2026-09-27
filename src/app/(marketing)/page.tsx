@@ -5,6 +5,7 @@ import { landingExample } from "@/components/marketing/example";
 import { PersonDot } from "@/components/foodlek/person";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { RECIPES } from "@/data/recipes";
 import { totalMinutes } from "@/domain/catalog/types";
 import { formatMinutes } from "@/lib/format";
@@ -94,7 +95,8 @@ export default function HomePage() {
           </div>
 
           {/* Same meal, two portions */}
-          <figure className="surface relative flex flex-col gap-5 p-6 shadow-lift sm:p-8">
+          <figure className="surface relative flex flex-col gap-5 overflow-hidden p-6 shadow-lift sm:p-8">
+            <RecipeVisual recipe={recipe} priority className="-mx-6 -mt-6 aspect-[16/7] rounded-none sm:-mx-8 sm:-mt-8" />
             <figcaption className="flex flex-col gap-1">
               <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Mardi · Dîner · {formatMinutes(totalMinutes(recipe))}</span>
               <span className="font-display text-2xl font-semibold text-balance">{recipe.title}</span>
@@ -248,7 +250,8 @@ export default function HomePage() {
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {featured.map((r) => (
               <li key={r.slug}>
-                <Link href={`/recettes/${r.slug}`} className="group flex h-full flex-col gap-2 rounded-2xl border p-5 transition-shadow hover:shadow-lift">
+                <Link href={`/recettes/${r.slug}`} className="group flex h-full flex-col gap-2 overflow-hidden rounded-2xl border p-5 transition-shadow hover:shadow-lift">
+                  <RecipeVisual recipe={r} className="-mx-5 -mt-5 mb-2 rounded-none" />
                   <span className="text-xs text-muted-foreground">{formatMinutes(totalMinutes(r))}</span>
                   <span className="font-semibold text-balance group-hover:underline group-hover:underline-offset-4">{r.title}</span>
                   <span className="line-clamp-3 text-sm text-muted-foreground">{r.description}</span>

@@ -13,6 +13,7 @@ import { findCurrentPlanId, loadPlanView } from "@/server/services/plans";
 import { addDays } from "@/lib/week";
 import { requireHousehold } from "@/server/auth/access";
 import { formatDay, formatEuros, formatMinutes, formatWeekday } from "@/lib/format";
+import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { recipeHref } from "@/lib/routes";
 import { isUpcoming, parisNow } from "@/lib/time";
 
@@ -58,7 +59,8 @@ export default async function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="flex min-w-0 flex-col gap-6">
           {next && nextRecipe ? (
-            <section aria-labelledby="next-title" className="surface flex flex-col gap-4 p-5 sm:p-6">
+            <section aria-labelledby="next-title" className="surface flex flex-col gap-4 overflow-hidden p-5 sm:p-6">
+              <RecipeVisual recipe={nextRecipe} className="-mx-5 -mt-5 aspect-[16/6] rounded-none sm:-mx-6 sm:-mt-6" />
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <span id="next-title" className="font-medium text-foreground">
                   {next.date === now.date ? "Aujourd'hui" : formatWeekday(next.date)} · {MEAL_TYPE_LABELS[next.mealType]}

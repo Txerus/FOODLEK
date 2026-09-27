@@ -47,8 +47,19 @@ export interface NutritionConfig {
     /** Absolute floors, whichever is higher between this and resting expenditure. */
     minKcalMale: number;
     minKcalFemale: number;
+    /** With a target date: never lose faster than this share of body weight per week… */
+    maxWeeklyRatio: number;
+    /** …nor more than this many kg per week… */
+    maxWeeklyKg: number;
+    /** …nor with a deficit above this many kcal per day. */
+    maxDeficitWithTargetKcal: number;
   };
-  gain: { surplusRatio: number; maxSurplusKcal: number };
+  gain: { surplusRatio: number; maxSurplusKcal: number; maxWeeklyRatio: number };
+  /**
+   * Energy stored in one kg of body weight change. 7 700 kcal/kg is the classic
+   * approximation (Wishnofsky); real changes vary, so projections are shown as estimates.
+   */
+  kcalPerKg: number;
   protein: {
     /** g/kg/day */
     defaultPerKg: number;
@@ -86,8 +97,12 @@ export const DEFAULT_NUTRITION_CONFIG: NutritionConfig = {
     maxDeficitKcal: 500,
     minKcalMale: 1500,
     minKcalFemale: 1200,
+    maxWeeklyRatio: 0.01,
+    maxWeeklyKg: 1,
+    maxDeficitWithTargetKcal: 750,
   },
-  gain: { surplusRatio: 0.1, maxSurplusKcal: 300 },
+  gain: { surplusRatio: 0.1, maxSurplusKcal: 300, maxWeeklyRatio: 0.005 },
+  kcalPerKg: 7700,
   protein: {
     // ANSES population reference intake for adults: 0.83 g/kg/day. We target a
     // slightly higher, still moderate default; higher targets only on request.

@@ -2,7 +2,7 @@
 
 import { ClockIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { SingleChips } from "@/components/foodlek/forms/choice-chips";
 import { QualityBadge } from "@/components/foodlek/quality-badge";
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
@@ -26,6 +26,8 @@ export interface RecipeListItem {
   mealTypes: string[];
   eligible: boolean;
   ineligibleReason: string | null;
+  /** Photo or illustration, rendered on the server. */
+  visual?: ReactNode;
 }
 
 type Filter = "all" | "quick" | "vegetarian" | "fish" | "protein" | "cheap" | "breakfast";
@@ -104,6 +106,7 @@ export function RecipeBrowser({ items }: { items: RecipeListItem[] }) {
                   !i.eligible && "opacity-70",
                 )}
               >
+                {i.visual ? <div className="-mx-4 -mt-4 overflow-hidden rounded-t-xl">{i.visual}</div> : null}
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <ClockIcon aria-hidden className="size-3.5" />
                   {formatMinutes(i.minutes)}

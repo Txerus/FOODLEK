@@ -58,6 +58,17 @@ export default async function NutritionPage() {
               ) : (
                 <p className="text-sm text-muted-foreground">Portions adaptées à l'appétit déclaré, sans objectif chiffré.</p>
               )}
+              {t.weightPlan && t.showNumbers ? (
+                <div className="rounded-lg bg-basil-soft p-3 text-sm">
+                  <p className="font-medium">
+                    {t.weightPlan.currentKg} kg → {t.weightPlan.targetKg} kg
+                  </p>
+                  <p className="text-muted-foreground">
+                    Environ {t.weightPlan.weeklyChangeKg.toLocaleString("fr-FR")} kg par semaine, soit {t.weightPlan.projectedWeeks} semaines estimées
+                    {t.weightPlan.requestedWeeks ? ` (souhaité : ${t.weightPlan.requestedWeeks} semaines)` : ""}.
+                  </p>
+                </div>
+              ) : null}
               {t.explanation.length > 0 && t.showNumbers ? (
                 <ul className="flex flex-col gap-1 text-sm text-muted-foreground">
                   {t.explanation.map((e) => (

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/foodlek/page-header";
+import { RecipeVisual } from "@/components/recipes/recipe-visual";
 import { RecipeBrowser, type RecipeListItem } from "@/components/recipes/recipe-browser";
 import { totalMinutes } from "@/domain/catalog/types";
 import { requireHousehold } from "@/server/auth/access";
@@ -26,6 +27,7 @@ export default async function RecipesPage() {
     mealTypes: c.recipe.mealTypes,
     eligible: c.eligible,
     ineligibleReason: c.ineligibleReasons[0] ?? null,
+    visual: <RecipeVisual recipe={c.recipe} className="rounded-none" />,
   }));
   return (
     <div className="flex flex-col gap-8">

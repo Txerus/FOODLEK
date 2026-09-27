@@ -21,6 +21,7 @@ import {
 import { SPECIAL_SITUATION_LABELS, SPECIAL_SITUATIONS } from "@/domain/nutrition/targets";
 import type { HouseholdSetup } from "@/lib/validation/household";
 import { MemberSwitcher } from "./member-switcher";
+import { WeightGoalFields } from "./weight-goal";
 
 const numberOrNull = (v: unknown) => (v === "" || v === null || v === undefined ? null : Number(v));
 
@@ -131,6 +132,8 @@ export function ProfilesStep() {
           ) : null}
           <FieldError errors={[errors?.goal]} />
         </FieldSet>
+
+        <WeightGoalFields index={i} />
 
         <Field orientation="horizontal">
           <FieldContent>

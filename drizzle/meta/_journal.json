@@ -8,6 +8,20 @@
       "when": 1790461474895,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790470713214,
+      "tag": "0001_weight_goal",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790500849395,
+      "tag": "0002_rate_limit_bigint",
+      "breakpoints": true
     }
   ]
 }

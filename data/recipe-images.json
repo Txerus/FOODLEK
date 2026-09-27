@@ -1,0 +1,4 @@
+{
+  "_about": "Photos des recettes. Clé = slug de la recette. Placez l'image dans public/recipes/ (ex. /recipes/poulet-curry-coco.webp) et indiquez son crédit. N'ajoutez que des photos dont vous avez les droits (vos propres photos, licence libre avec crédit). Sans entrée, une illustration originale est générée à partir des ingrédients.",
+  "images": {}
+}
