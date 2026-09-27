@@ -36,6 +36,13 @@
       "when": 1790508704540,
       "tag": "0004_product_images_recipe_photos",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790521216486,
+      "tag": "0005_ingredient_photos",
+      "breakpoints": true
     }
   ]
 }

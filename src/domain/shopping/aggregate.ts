@@ -54,6 +54,12 @@ export interface ShoppingList {
   totalCents: Cents;
   pricedLineCount: number;
   missingPriceCount: number;
+  /** Part of the total priced from another store (the chosen one has no price). */
+  otherStoreCents: Cents;
+  otherStoreLineCount: number;
+  /** Part of the total that uses the fictitious demo prices. */
+  demoFallbackCents: Cents;
+  demoFallbackLineCount: number;
   quality: DataQuality;
   /** Value of the food actually eaten this week (purchased lines only). */
   consumedValueCents: Cents;
@@ -148,7 +154,9 @@ export function buildShoppingList(
     });
   }
 
-  lines.sort((a, b) => AISLES.indexOf(a.aisle) - AISLES.indexOf(b.aisle) || a.ingredientName.localeCompare(b.ingredientName, "fr"));
+  lines.sort(
+    (a, b) => AISLES.indexOf(a.aisle) - AISLES.indexOf(b.aisle) || a.ingredientName.localeCompare(b.ingredientName, "fr"),
+  );
 
   const byAisle = AISLES.map((aisle) => ({ aisle, lines: lines.filter((l) => l.aisle === aisle) })).filter(
     (g) => g.lines.length > 0,
@@ -174,12 +182,19 @@ export function buildShoppingList(
   }
 
   const pricedQualities = bought.map((l) => l.quality);
+  const fallbackOf = (l: ShoppingLine) => l.choices.find((c) => c.offer.fallback)?.offer.fallback ?? null;
+  const otherStore = bought.filter((l) => fallbackOf(l) === "other_store");
+  const demo = bought.filter((l) => fallbackOf(l) === "demo");
   return {
     lines,
     byAisle,
     totalCents,
     pricedLineCount: bought.length - missingPriceCount,
     missingPriceCount,
+    otherStoreCents: otherStore.reduce((s, l) => s + (l.costCents ?? 0), 0),
+    otherStoreLineCount: otherStore.length,
+    demoFallbackCents: demo.reduce((s, l) => s + (l.costCents ?? 0), 0),
+    demoFallbackLineCount: demo.length,
     quality: bought.length === 0 ? "VERIFIED" : worstQuality(pricedQualities),
     consumedValueCents: consumed,
     usageRatio: perishablePurchased > 0 ? perishableUsed / perishablePurchased : null,

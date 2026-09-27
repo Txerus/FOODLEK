@@ -40,6 +40,12 @@ export interface RetailOffer {
   imageUrl?: string | null;
   /** Price typed in by the household itself. */
   manual?: boolean;
+  /**
+   * Set when the chosen store has no price for the ingredient and this offer
+   * stands in for it: a price seen in another store (ESTIMATED), or the
+   * fictitious price of the demo catalogue (DEMO). Always shown as such.
+   */
+  fallback?: "other_store" | "demo" | null;
 }
 
 export type OfferIndex = ReadonlyMap<string, readonly RetailOffer[]>;

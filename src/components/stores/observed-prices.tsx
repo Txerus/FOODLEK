@@ -14,7 +14,13 @@ import { selectStoreAction, syncObservedPricesAction, type ObservedSyncSummary }
 
 const RADII = [10, 20, 30, 50];
 
-export function ObservedPricesForm({ retailers, defaultCity }: { retailers: { slug: string; name: string }[]; defaultCity: string }) {
+export function ObservedPricesForm({
+  retailers,
+  defaultCity,
+}: {
+  retailers: { slug: string; name: string }[];
+  defaultCity: string;
+}) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [retailerSlug, setRetailerSlug] = useState("carrefour");
@@ -60,7 +66,15 @@ export function ObservedPricesForm({ retailers, defaultCity }: { retailers: { sl
         </Field>
         <Field>
           <FieldLabel htmlFor="city">Ville</FieldLabel>
-          <Input id="city" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Annecy" autoComplete="address-level2" required minLength={2} />
+          <Input
+            id="city"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Annecy"
+            autoComplete="address-level2"
+            required
+            minLength={2}
+          />
         </Field>
         <Field>
           <FieldLabel htmlFor="radius">Rayon</FieldLabel>
@@ -81,23 +95,32 @@ export function ObservedPricesForm({ retailers, defaultCity }: { retailers: { sl
         </Field>
       </FieldGroup>
       <FieldDescription>
-        Sans prix relevé près de chez vous, FOODLEK prend le prix le plus récent vu dans un autre magasin de l'enseigne, et l'indique.
+        Sans prix relevé près de chez vous, FOODLEK prend le prix le plus récent vu dans un autre magasin de l'enseigne, et
+        l'indique.
       </FieldDescription>
       <div className="flex flex-wrap items-center gap-3">
         <Button type="submit" disabled={pending}>
           {pending ? <Spinner data-icon="inline-start" /> : null}
           {pending ? "Récupération des prix…" : "Récupérer les prix réels"}
         </Button>
-        {pending ? <p className="text-sm text-muted-foreground" aria-live="polite">Environ 1 à 2 minutes : chaque ingrédient est recherché.</p> : null}
+        {pending ? (
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            Environ 1 à 2 minutes : chaque ingrédient est recherché.
+          </p>
+        ) : null}
       </div>
       {result ? (
         <div className="flex flex-col gap-2 rounded-lg bg-basil-soft p-4 text-sm" aria-live="polite">
           <p className="font-medium">{result.storeName}</p>
           <p>
-            {result.pricedCount} ingrédients avec un prix réel ({result.priceCount} produits), {result.nearbyStoreCount} magasin(s) de l'enseigne dans le rayon. Ce magasin est maintenant celui de votre foyer.
+            {result.pricedCount} ingrédients avec un prix réel ({result.priceCount} produits), {result.nearbyStoreCount}{" "}
+            magasin(s) de l'enseigne dans le rayon. Ce magasin est maintenant celui de votre foyer.
           </p>
           {result.missing.length > 0 ? (
-            <p className="text-muted-foreground">Sans prix relevé pour l'instant : {result.missing.join(", ")}.</p>
+            <p className="text-muted-foreground">
+              Sans prix relevé pour l'instant : {result.missing.join(", ")}. La liste de courses leur donnera le prix d'un autre
+              magasin, ou à défaut le prix fictif de démonstration, avec une étiquette ; vous pourrez y indiquer le vôtre.
+            </p>
           ) : null}
           <Button asChild size="sm" className="self-start">
             <Link href="/planning">Recalculer la semaine avec ces prix</Link>

@@ -24,6 +24,7 @@
     "test:integration": "vitest run --project integration",
     "prix:enseigne": "cross-env NODE_OPTIONS=--conditions=react-server tsx scripts/retail/sync-observed-prices.ts",
     "photos:recettes": "cross-env NODE_OPTIONS=--conditions=react-server tsx scripts/data/recipe-photos.ts",
+    "photos:ingredients": "cross-env NODE_OPTIONS=--conditions=react-server tsx scripts/data/ingredient-photos.ts",
     "admin:grant": "tsx scripts/db/grant-admin.ts"
   },
   "dependencies": {

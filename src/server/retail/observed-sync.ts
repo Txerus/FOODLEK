@@ -1,4 +1,5 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNotNull } from "drizzle-orm";
+import { z } from "zod";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { OBSERVED_PRICE_SPECS } from "@/data/open-prices-categories";
 import { freshnessOf } from "@/domain/common/data-quality";
@@ -14,6 +15,7 @@ import {
   looseOffer,
   normalizeText,
   OPEN_PRICES_API,
+  safeImageUrl,
   pageOf,
   priceSchema,
   productOffers,
@@ -59,6 +61,8 @@ export interface ObservedSyncResult {
   priced: { ingredient: string; offers: number; nearby: boolean; scope: ObservedOffer["scope"] }[];
   missing: string[];
   priceCount: number;
+  /** Products given their Open Food Facts photo during this sync. */
+  imagesAdded: number;
 }
 
 export class ObservedSyncError extends Error {}
@@ -66,6 +70,37 @@ export class ObservedSyncError extends Error {}
 type Db = PostgresJsDatabase<typeof t>;
 
 const MAX_OFFERS_PER_INGREDIENT = 6;
+/** Open Food Facts photos looked up per ingredient (the cheapest offers first). */
+const IMAGE_LOOKUPS_PER_INGREDIENT = 2;
+/** Beyond the chosen window, older observations are still better than no price (labelled, ESTIMATED). */
+const OLD_OBSERVATIONS_DAYS = 730;
+const OFF_PRODUCT_API = "https://world.openfoodfacts.org/api/v2/product";
+
+const offProductSchema = z.object({
+  product: z.object({ image_front_url: z.string().nullish(), image_url: z.string().nullish() }).nullish(),
+});
+
+/**
+ * Front photo of a product in Open Food Facts (CC BY-SA), by barcode. Only
+ * images hosted by Open Food Facts are kept; any failure means "no photo".
+ */
+export async function fetchProductImage(
+  ean: string,
+  options: Pick<ObservedSyncOptions, "userAgent" | "fetchImpl">,
+): Promise<string | null> {
+  if (!/^\d{8,14}$/.test(ean)) return null;
+  try {
+    const res = await (options.fetchImpl ?? fetch)(`${OFF_PRODUCT_API}/${ean}?fields=image_front_url,image_url`, {
+      headers: { "User-Agent": options.userAgent, Accept: "application/json" },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return null;
+    const product = offProductSchema.parse(await res.json()).product;
+    return safeImageUrl(product?.image_front_url) ?? safeImageUrl(product?.image_url);
+  } catch {
+    return null;
+  }
+}
 const ID_CHUNK = 120;
 
 function slugify(s: string): string {
@@ -100,7 +135,10 @@ export function createOpenPricesClient(options: Pick<ObservedSyncOptions, "userA
   };
 }
 
-async function retailerLocations(getJson: (p: string) => Promise<unknown>, retailer: RetailerDefinition): Promise<OpenPricesLocation[]> {
+async function retailerLocations(
+  getJson: (p: string) => Promise<unknown>,
+  retailer: RetailerDefinition,
+): Promise<OpenPricesLocation[]> {
   const all = new Map<number, OpenPricesLocation>();
   for (const word of retailer.brandWords) {
     for (let page = 1; page <= 20; page++) {
@@ -114,7 +152,12 @@ async function retailerLocations(getJson: (p: string) => Promise<unknown>, retai
 }
 
 /** locationIds = null: every store in France (used as a last resort, other retailers included). */
-async function pricesAt(getJson: (p: string) => Promise<unknown>, locationIds: number[] | null, filter: Record<string, string>, since: string): Promise<OpenPricesPrice[]> {
+async function pricesAt(
+  getJson: (p: string) => Promise<unknown>,
+  locationIds: number[] | null,
+  filter: Record<string, string>,
+  since: string,
+): Promise<OpenPricesPrice[]> {
   if (locationIds === null) {
     const params = new URLSearchParams({ ...filter, date__gte: since, order_by: "-date", size: "100" });
     return pageOf(priceSchema)
@@ -156,7 +199,11 @@ async function offersFor(
   return offers;
 }
 
-export async function syncObservedPrices(database: Db, ingredients: IngredientForSync[], options: ObservedSyncOptions): Promise<ObservedSyncResult> {
+export async function syncObservedPrices(
+  database: Db,
+  ingredients: IngredientForSync[],
+  options: ObservedSyncOptions,
+): Promise<ObservedSyncResult> {
   const retailer = FRENCH_RETAILERS.find((r) => r.slug === options.retailerSlug);
   if (!retailer) throw new ObservedSyncError(`Enseigne inconnue : ${options.retailerSlug}.`);
   const progress = options.onProgress ?? (() => {});
@@ -173,7 +220,8 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
     const any = pageOf(locationSchema).parse(await getJson(`/locations?${params}`)).items;
     centre = cityCentre(any, options.city);
   }
-  if (!centre) throw new ObservedSyncError(`Ville « ${options.city} » introuvable dans Open Prices. Essayez une grande ville proche.`);
+  if (!centre)
+    throw new ObservedSyncError(`Ville « ${options.city} » introuvable dans Open Prices. Essayez une grande ville proche.`);
 
   const nearbyIds = locations
     .filter((l) => {
@@ -195,10 +243,64 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
     if (offers.length === 0 && options.otherRetailersFallback !== false) {
       // Last resort: a price seen at another retailer in France, clearly labelled.
       offers = (await offersFor(getJson, ing, null, since, false)).map((o) => ({ ...o, scope: "other_retailer" as const }));
+      if (offers.length === 0 && options.maxAgeDays < OLD_OBSERVATIONS_DAYS) {
+        // Still nothing: an older observation in France, shown with its date.
+        const oldSince = new Date(Date.now() - OLD_OBSERVATIONS_DAYS * 86_400_000).toISOString().slice(0, 10);
+        offers = (await offersFor(getJson, ing, null, oldSince, false)).map((o) => ({ ...o, scope: "other_retailer" as const }));
+      }
     }
     found.set(ing.id, offers);
-    const scopeLabel = offers[0]?.scope === "other_retailer" ? " (autre enseigne)" : offers[0]?.scope === "retailer" ? " (hors de votre zone)" : "";
+    const scopeLabel =
+      offers[0]?.scope === "other_retailer"
+        ? " (autre enseigne)"
+        : offers[0]?.scope === "retailer"
+          ? " (hors de votre zone)"
+          : "";
     progress(`${ing.name} : ${offers.length > 0 ? `${offers.length} prix${scopeLabel}` : "aucun prix"}`);
+  }
+
+  // ---- Product photos ----------------------------------------------------
+  // Open Prices does not always carry the product photo: look it up in Open
+  // Food Facts by barcode, unless the product already has one.
+  const productIdOf = (ing: IngredientForSync, offer: ObservedOffer) =>
+    offer.ean ? `prd_op_${retailer.slug}_${offer.ean}` : `prd_op_${retailer.slug}_${ing.slug}_vrac_${offer.pack.unit}`;
+  const wanted = ingredients.flatMap((ing) =>
+    (found.get(ing.id) ?? [])
+      .slice(0, IMAGE_LOOKUPS_PER_INGREDIENT)
+      .filter((o) => o.ean && !o.imageUrl)
+      .map((o) => ({ offer: o, productId: productIdOf(ing, o) })),
+  );
+  const known = new Map<string, string>();
+  for (let i = 0; i < wanted.length; i += ID_CHUNK) {
+    const rows = await database
+      .select({ id: t.retailProducts.id, imageUrl: t.retailProducts.imageUrl })
+      .from(t.retailProducts)
+      .where(
+        and(
+          inArray(
+            t.retailProducts.id,
+            wanted.slice(i, i + ID_CHUNK).map((w) => w.productId),
+          ),
+          isNotNull(t.retailProducts.imageUrl),
+        ),
+      );
+    for (const r of rows) if (r.imageUrl) known.set(r.id, r.imageUrl);
+  }
+  let imagesAdded = 0;
+  const lookups = wanted.filter((w) => !known.has(w.productId));
+  if (lookups.length > 0) progress(`Recherche de ${lookups.length} photo(s) de produit dans Open Food Facts…`);
+  for (const w of wanted) {
+    const stored = known.get(w.productId);
+    if (stored) {
+      w.offer.imageUrl = stored;
+      continue;
+    }
+    const image = await fetchProductImage(w.offer.ean as string, options);
+    if (image) {
+      w.offer.imageUrl = image;
+      imagesAdded++;
+    }
+    if ((options.delayMs ?? 400) > 0) await sleep(options.delayMs ?? 400);
   }
 
   // ---- Save --------------------------------------------------------------
@@ -220,15 +322,20 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
   let priceCount = 0;
 
   await database.transaction(async (tx) => {
-    await tx.insert(t.stores).values({ id: storeId, ...storeRow }).onConflictDoUpdate({ target: t.stores.id, set: storeRow });
-    await tx.insert(t.syncLogs).values({ id: logId, provider: "open-prices", retailerId: retailer.id, storeId, status: "running" });
+    await tx
+      .insert(t.stores)
+      .values({ id: storeId, ...storeRow })
+      .onConflictDoUpdate({ target: t.stores.id, set: storeRow });
+    await tx
+      .insert(t.syncLogs)
+      .values({ id: logId, provider: "open-prices", retailerId: retailer.id, storeId, status: "running" });
     // The store's prices are replaced by the current observations.
     await tx.delete(t.retailPrices).where(eq(t.retailPrices.storeId, storeId));
 
     for (const ing of ingredients) {
       const spec = OBSERVED_PRICE_SPECS[ing.slug];
       for (const offer of found.get(ing.id) ?? []) {
-        const productId = offer.ean ? `prd_op_${retailer.slug}_${offer.ean}` : `prd_op_${retailer.slug}_${ing.slug}_vrac_${offer.pack.unit}`;
+        const productId = productIdOf(ing, offer);
         const productRow = {
           retailerId: retailer.id,
           externalId: offer.ean,
@@ -244,10 +351,20 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
           imageUrl: offer.imageUrl,
           provider: "open-prices",
         };
-        await tx.insert(t.retailProducts).values({ id: productId, ...productRow }).onConflictDoUpdate({ target: t.retailProducts.id, set: productRow });
+        await tx
+          .insert(t.retailProducts)
+          .values({ id: productId, ...productRow })
+          .onConflictDoUpdate({ target: t.retailProducts.id, set: productRow });
         await tx
           .insert(t.productMappings)
-          .values({ id: `map_${productId}_${ing.slug}`, ingredientId: ing.id, productId, priority: 0, substitutionNote: spec?.substitution ?? null, status: "active" })
+          .values({
+            id: `map_${productId}_${ing.slug}`,
+            ingredientId: ing.id,
+            productId,
+            priority: 0,
+            substitutionNote: spec?.substitution ?? null,
+            status: "active",
+          })
           .onConflictDoNothing();
         const freshness = freshnessOf(offer.observedAt, now);
         await tx.insert(t.retailPrices).values({
@@ -262,15 +379,23 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
           fetchedAt: offer.observedAt,
           provider: "open-prices",
           // A price from another retailer is only an estimate for this one.
-          quality: offer.scope === "other_retailer" || freshness === "OLD" ? "ESTIMATED" : freshness === "LIVE" ? "LIVE" : "RECENT",
+          quality:
+            offer.scope === "other_retailer" || freshness === "OLD" ? "ESTIMATED" : freshness === "LIVE" ? "LIVE" : "RECENT",
           sourceUrl: offer.sourceUrl,
           observedWhere:
-            offer.scope === "nearby" ? offer.observedWhere : offer.scope === "retailer" ? `${offer.observedWhere} (hors de votre zone)` : `${offer.observedWhere} (autre enseigne)`,
+            offer.scope === "nearby"
+              ? offer.observedWhere
+              : offer.scope === "retailer"
+                ? `${offer.observedWhere} (hors de votre zone)`
+                : `${offer.observedWhere} (autre enseigne)`,
         });
         priceCount++;
       }
     }
-    await tx.update(t.syncLogs).set({ status: "success", itemCount: priceCount, finishedAt: new Date() }).where(eq(t.syncLogs.id, logId));
+    await tx
+      .update(t.syncLogs)
+      .set({ status: "success", itemCount: priceCount, finishedAt: new Date() })
+      .where(eq(t.syncLogs.id, logId));
   });
 
   return {
@@ -279,9 +404,15 @@ export async function syncObservedPrices(database: Db, ingredients: IngredientFo
     nearbyStoreCount: nearbyIds.length,
     priced: ingredients
       .filter((i) => (found.get(i.id) ?? []).length > 0)
-      .map((i) => ({ ingredient: i.name, offers: (found.get(i.id) ?? []).length, nearby: (found.get(i.id) ?? [])[0].nearby, scope: (found.get(i.id) ?? [])[0].scope })),
+      .map((i) => ({
+        ingredient: i.name,
+        offers: (found.get(i.id) ?? []).length,
+        nearby: (found.get(i.id) ?? [])[0].nearby,
+        scope: (found.get(i.id) ?? [])[0].scope,
+      })),
     missing: ingredients.filter((i) => (found.get(i.id) ?? []).length === 0).map((i) => i.name),
     priceCount,
+    imagesAdded,
   };
 }
 
@@ -295,9 +426,19 @@ export async function listObservedStores(database: Db) {
   const logs = await database
     .select()
     .from(t.syncLogs)
-    .where(and(eq(t.syncLogs.provider, "open-prices"), inArray(t.syncLogs.storeId, stores.map((s) => s.id))));
+    .where(
+      and(
+        eq(t.syncLogs.provider, "open-prices"),
+        inArray(
+          t.syncLogs.storeId,
+          stores.map((s) => s.id),
+        ),
+      ),
+    );
   return stores.map((s) => {
-    const last = logs.filter((l) => l.storeId === s.id && l.status === "success").sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())[0];
+    const last = logs
+      .filter((l) => l.storeId === s.id && l.status === "success")
+      .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())[0];
     return { ...s, lastSyncAt: last?.finishedAt ?? null, priceCount: last?.itemCount ?? 0 };
   });
 }

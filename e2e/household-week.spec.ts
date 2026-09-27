@@ -86,7 +86,7 @@ test("créer un foyer, générer la semaine, remplacer un repas", async ({ page 
   // Shopping list: the total equals the sum of the lines
   await page.goto("/shopping");
   const total = euros(await page.locator("header p.font-display").innerText());
-  const lineTexts = await page.locator("main ul.surface > li span.shrink-0.font-semibold").allInnerTexts();
+  const lineTexts = await page.locator("main ul.surface > li [data-testid=line-price]").allInnerTexts();
   const sum = lineTexts.map(euros).reduce((a, b) => a + b, 0);
   expect(Math.abs(sum - total)).toBeLessThan(0.01);
   expect(total).toBeGreaterThan(0);

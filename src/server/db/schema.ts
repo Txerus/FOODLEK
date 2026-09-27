@@ -1,17 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import {
-  bigint,
-  boolean,
-  date,
-  index,
-  integer,
-  jsonb,
-  pgTable,
-  real,
-  text,
-  timestamp,
-  uniqueIndex,
-} from "drizzle-orm/pg-core";
+import { bigint, boolean, date, index, integer, jsonb, pgTable, real, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import type { NutrientsPer100g } from "@/domain/nutrition/nutrients";
 import type { IngredientMeasures } from "@/domain/units/units";
 
@@ -157,7 +145,10 @@ export const householdSettings = pgTable("household_settings", {
   maxWeekdayMinutes: integer().notNull().default(40),
   maxWeekendMinutes: integer().notNull().default(75),
   skill: text().notNull().default("intermediate"),
-  equipment: text().array().notNull().default(sql`ARRAY['hob']::text[]`),
+  equipment: text()
+    .array()
+    .notNull()
+    .default(sql`ARRAY['hob']::text[]`),
   batchCooking: boolean().notNull().default(false),
   preferQuickMeals: boolean().notNull().default(false),
   maxDistinctRecipes: integer(),
@@ -197,11 +188,26 @@ export const householdMembers = pgTable(
     goalWeeks: integer(),
     highProtein: boolean().notNull().default(false),
     appetite: text().notNull().default("normal"),
-    specialSituations: text().array().notNull().default(sql`ARRAY[]::text[]`),
-    diets: text().array().notNull().default(sql`ARRAY[]::text[]`),
-    allergies: text().array().notNull().default(sql`ARRAY[]::text[]`),
-    excludedIngredientIds: text().array().notNull().default(sql`ARRAY[]::text[]`),
-    likedIngredientIds: text().array().notNull().default(sql`ARRAY[]::text[]`),
+    specialSituations: text()
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    diets: text()
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    allergies: text()
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    excludedIngredientIds: text()
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    likedIngredientIds: text()
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
     ...timestamps,
   },
   (t) => [index().on(t.householdId)],
@@ -239,7 +245,10 @@ export const ingredients = pgTable("ingredients", {
   measures: jsonb().$type<IngredientMeasures>().notNull(),
   measuresSource: text(),
   compositionId: text().references(() => foodCompositions.id, { onDelete: "set null" }),
-  allergens: text().array().notNull().default(sql`ARRAY[]::text[]`),
+  allergens: text()
+    .array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
   animalOrigin: text().notNull(),
   isPork: boolean().notNull().default(false),
   containsAlcohol: boolean().notNull().default(false),
@@ -248,6 +257,10 @@ export const ingredients = pgTable("ingredients", {
   cookedYield: real(),
   proteinFamily: text(),
   pieceLabel: jsonb().$type<{ one: string; many: string }>(),
+  /** Generic photo of the ingredient (Pexels), shown when a product has none. */
+  imageUrl: text(),
+  imageCredit: text(),
+  imageSourceUrl: text(),
   ...timestamps,
 });
 

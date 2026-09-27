@@ -43,8 +43,16 @@ async function loadFromDb(): Promise<Catalog> {
   const recipeIds = recipeRows.map((r) => r.id);
   const [riRows, stepRows] = recipeIds.length
     ? await Promise.all([
-        database.select().from(t.recipeIngredients).where(inArray(t.recipeIngredients.recipeId, recipeIds)).orderBy(asc(t.recipeIngredients.position)),
-        database.select().from(t.recipeSteps).where(inArray(t.recipeSteps.recipeId, recipeIds)).orderBy(asc(t.recipeSteps.position)),
+        database
+          .select()
+          .from(t.recipeIngredients)
+          .where(inArray(t.recipeIngredients.recipeId, recipeIds))
+          .orderBy(asc(t.recipeIngredients.position)),
+        database
+          .select()
+          .from(t.recipeSteps)
+          .where(inArray(t.recipeSteps.recipeId, recipeIds))
+          .orderBy(asc(t.recipeSteps.position)),
       ])
     : [[], []];
 
@@ -77,6 +85,7 @@ async function loadFromDb(): Promise<Catalog> {
       cookedYield: row.cookedYield,
       proteinFamily: (row.proteinFamily as ProteinFamily | null) ?? null,
       pieceLabel: row.pieceLabel ?? null,
+      photo: row.imageUrl ? { url: row.imageUrl, credit: row.imageCredit, sourceUrl: row.imageSourceUrl } : null,
     };
   });
 

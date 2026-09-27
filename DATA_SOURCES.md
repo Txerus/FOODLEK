@@ -26,7 +26,15 @@ Position : pas de scraping de sites marchands, pas de contournement de protectio
 
 **Limites connues des correspondances USDA** : lait demi-écrémé → lait 2 % (≈ 50 kcal/100 ml contre ≈ 46 pour un demi-écrémé français) ; lardons → bacon américain cru (plus gras que des lardons français). À remplacer par Ciqual dès que la table est importée.
 
-**Photos des produits** : champ `image_url` des produits Open Food Facts renvoyé par Open Prices (licence CC BY-SA, créditée dans le détail de chaque ligne). Seuls les domaines `*.openfoodfacts.org` sont acceptés.
+**Photos des produits** (dans cet ordre, pour que chaque ligne de courses ait une image) :
+
+1. photo du produit renvoyée par Open Prices (champ `image_url`, Open Food Facts, CC BY-SA) ;
+2. sinon, photo de face du produit dans l'API produit d'Open Food Facts (`world.openfoodfacts.org/api/v2/product/{code-barres}?fields=image_front_url`), cherchée pendant la synchronisation pour les 2 offres les moins chères de chaque ingrédient, et conservée d'une synchronisation à l'autre ;
+3. sinon, photo générique de l'ingrédient (Pexels, `pnpm photos:ingredients`, termes dans `src/data/ingredient-photo-queries.ts`), marquée « illustration, pas le produit exact » avec le crédit du photographe ;
+4. sinon, icône du rayon.
+   Seuls les domaines `*.openfoodfacts.org` et `images.pexels.com` sont acceptés.
+
+**Prix de repli** (`loadShoppingOffers`, `src/server/services/offers.ts`) : quand le magasin choisi n'a aucun prix pour un ingrédient, la liste prend, dans cet ordre : le prix saisi par le foyer ; le dernier prix relevé dans un autre magasin FOODLEK (autre ville ou autre enseigne), qualité `ESTIMATED`, étiquette « autre magasin » avec le magasin et la date ; en dernier recours, le prix **fictif** du catalogue de démonstration, qualité `DEMO`, étiquette « prix fictif ». Le haut de la liste indique combien de produits et quel montant viennent de chaque repli. Pendant la synchronisation, si aucun relevé récent n'existe même dans une autre enseigne, un relevé français jusqu'à 2 ans est accepté (qualité `ESTIMATED`, date affichée). Pistes étudiées sans les intégrer : les prix moyens de détail de l'INSEE et d'Agreste ne couvrent qu'une partie des produits et plusieurs séries sont arrêtées.
 
 **Prix saisis par le foyer** : un foyer peut indiquer le prix payé pour un ingrédient sans prix ; ce produit porte l'identifiant du foyer (`retail_products.household_id`) et n'est jamais montré aux autres foyers.
 

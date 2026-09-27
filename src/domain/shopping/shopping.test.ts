@@ -25,7 +25,17 @@ const carrot: Ingredient = {
 };
 
 const chicken: Ingredient = { ...carrot, id: "ing_poulet", slug: "poulet", name: "Poulet", aisle: "boucherie", shelfLifeDays: 3 };
-const oil: Ingredient = { ...carrot, id: "ing_huile", slug: "huile", name: "Huile", aisle: "epicerie", purchaseUnit: "ml", measures: { gramsPerMl: 0.9 }, isStaple: true, shelfLifeDays: 540 };
+const oil: Ingredient = {
+  ...carrot,
+  id: "ing_huile",
+  slug: "huile",
+  name: "Huile",
+  aisle: "epicerie",
+  purchaseUnit: "ml",
+  measures: { gramsPerMl: 0.9 },
+  isStaple: true,
+  shelfLifeDays: 540,
+};
 
 function offer(id: string, qty: number, price: number, extra: Partial<RetailOffer> = {}): RetailOffer {
   return {
@@ -89,7 +99,12 @@ describe("selectPacks", () => {
   });
 
   it("ignores unavailable or unpriced offers and returns null when nothing is usable", () => {
-    const s = selectPacks(100, chicken, [offer("x", 500, 500, { availability: "unavailable" }), offer("y", 500, 0, { priceCents: null })], DEFAULT_RETAIL_PREFERENCES);
+    const s = selectPacks(
+      100,
+      chicken,
+      [offer("x", 500, 500, { availability: "unavailable" }), offer("y", 500, 0, { priceCents: null })],
+      DEFAULT_RETAIL_PREFERENCES,
+    );
     expect(s).toBeNull();
   });
 
@@ -103,8 +118,18 @@ describe("selectPacks", () => {
 describe("buildShoppingList", () => {
   const ingredients = new Map([carrot, chicken, oil].map((i) => [i.id, i]));
   const meals: MealUsage[] = [
-    { mealKey: "a", recipeId: "rA", recipeTitle: "A", quantities: [{ ingredientId: carrot.id, ingredientName: "Carotte", quantity: 250, unit: "g", grams: 250 }] },
-    { mealKey: "b", recipeId: "rB", recipeTitle: "B", quantities: [{ ingredientId: carrot.id, ingredientName: "Carotte", quantity: 400, unit: "g", grams: 400 }] },
+    {
+      mealKey: "a",
+      recipeId: "rA",
+      recipeTitle: "A",
+      quantities: [{ ingredientId: carrot.id, ingredientName: "Carotte", quantity: 250, unit: "g", grams: 250 }],
+    },
+    {
+      mealKey: "b",
+      recipeId: "rB",
+      recipeTitle: "B",
+      quantities: [{ ingredientId: carrot.id, ingredientName: "Carotte", quantity: 400, unit: "g", grams: 400 }],
+    },
     {
       mealKey: "c",
       recipeId: "rC",
@@ -131,8 +156,30 @@ describe("buildShoppingList", () => {
     expect(line.usedIn).toHaveLength(3);
   });
 
+  it("totals apart the prices that stand in for the store's", () => {
+    const standIns = new Map<string, RetailOffer[]>([
+      [carrot.id, [offer("c-else", 1000, 150, { fallback: "other_store", quality: "ESTIMATED" })]],
+      [oil.id, [offer("oil-demo", 500, 499, { packUnit: "ml", fallback: "demo", quality: "DEMO" })]],
+    ]);
+    const list = buildShoppingList(meals, ingredients, standIns, [], DEFAULT_RETAIL_PREFERENCES);
+    expect(list).toMatchObject({
+      otherStoreLineCount: 1,
+      otherStoreCents: 150,
+      demoFallbackLineCount: 1,
+      demoFallbackCents: 499,
+      missingPriceCount: 0,
+      quality: "DEMO",
+    });
+  });
+
   it("removes what the pantry already covers", () => {
-    const list = buildShoppingList(meals, ingredients, offers, [{ ingredientId: oil.id, quantity: null }], DEFAULT_RETAIL_PREFERENCES);
+    const list = buildShoppingList(
+      meals,
+      ingredients,
+      offers,
+      [{ ingredientId: oil.id, quantity: null }],
+      DEFAULT_RETAIL_PREFERENCES,
+    );
     const oilLine = list.lines.find((l) => l.ingredientId === oil.id)!;
     expect(oilLine.toBuy).toBe(0);
     expect(oilLine.costCents).toBe(0);
@@ -140,7 +187,13 @@ describe("buildShoppingList", () => {
   });
 
   it("subtracts partial pantry quantities", () => {
-    const list = buildShoppingList(meals, ingredients, offers, [{ ingredientId: carrot.id, quantity: 200 }], DEFAULT_RETAIL_PREFERENCES);
+    const list = buildShoppingList(
+      meals,
+      ingredients,
+      offers,
+      [{ ingredientId: carrot.id, quantity: 200 }],
+      DEFAULT_RETAIL_PREFERENCES,
+    );
     expect(list.lines.find((l) => l.ingredientId === carrot.id)!.toBuy).toBe(750);
   });
 

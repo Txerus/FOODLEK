@@ -11,7 +11,7 @@ import type { OfferIndex } from "@/domain/retail/types";
 import { gramsToPurchaseUnit } from "@/domain/units/units";
 import { getCatalog, type Catalog } from "./catalog";
 import { loadHouseholdContext, type HouseholdContext } from "./households";
-import { loadOffersForStore } from "./offers";
+import { loadShoppingOffers } from "./offers";
 import { findCurrentPlanId, loadPlanView, planMembers } from "./plans";
 
 export interface ServingCost {
@@ -77,7 +77,7 @@ export interface RecipeCardData {
 
 export async function listRecipesForHousehold(householdId: string): Promise<{ cards: RecipeCardData[]; ctx: HouseholdContext }> {
   const [catalog, ctx] = await Promise.all([getCatalog(), loadHouseholdContext(householdId)]);
-  const offers = ctx.settings?.storeId ? await loadOffersForStore(ctx.settings.storeId, new Date(), householdId) : new Map();
+  const offers = await loadShoppingOffers(ctx.settings?.storeId ?? null, new Date(), householdId);
   const eaters = ctx.members.map((m) => ({ name: m.displayName, constraints: m.constraints }));
   const cards = catalog.recipes.map((recipe) => {
     const check = checkRecipeForEaters(recipe, catalog.ingredientIndex, eaters);
@@ -110,7 +110,7 @@ export async function getRecipeDetail(householdId: string, slug: string, slotKey
   const recipe = catalog.recipesBySlug.get(slug);
   if (!recipe) return null;
   const ctx = await loadHouseholdContext(householdId);
-  const offers = ctx.settings?.storeId ? await loadOffersForStore(ctx.settings.storeId, new Date(), householdId) : new Map();
+  const offers = await loadShoppingOffers(ctx.settings?.storeId ?? null, new Date(), householdId);
   const eaters = ctx.members.map((m) => ({ name: m.displayName, constraints: m.constraints }));
   const check = checkRecipeForEaters(recipe, catalog.ingredientIndex, eaters);
   const base = {

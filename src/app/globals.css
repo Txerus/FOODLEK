@@ -33,6 +33,7 @@
   --paprika: oklch(0.63 0.155 42);
   --paprika-foreground: oklch(0.99 0.01 60);
   --paprika-soft: oklch(0.955 0.03 55);
+  --paprika-ink: oklch(0.45 0.13 40);
   --saffron: oklch(0.83 0.13 85);
   --saffron-soft: oklch(0.965 0.04 90);
   --saffron-ink: oklch(0.44 0.09 70);
@@ -102,6 +103,7 @@
   --color-paprika: var(--paprika);
   --color-paprika-foreground: var(--paprika-foreground);
   --color-paprika-soft: var(--paprika-soft);
+  --color-paprika-ink: var(--paprika-ink);
   --color-saffron: var(--saffron);
   --color-saffron-soft: var(--saffron-soft);
   --color-saffron-ink: var(--saffron-ink);

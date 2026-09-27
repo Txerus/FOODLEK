@@ -1,6 +1,22 @@
 "use client";
 
-import { ChevronDownIcon, CopyIcon, ExternalLinkIcon, PencilIcon, RefreshCcwIcon } from "lucide-react";
+import {
+  BeefIcon,
+  ChevronDownIcon,
+  CopyIcon,
+  CroissantIcon,
+  CupSodaIcon,
+  ExternalLinkIcon,
+  FishIcon,
+  MilkIcon,
+  PackageIcon,
+  PencilIcon,
+  RefreshCcwIcon,
+  SaladIcon,
+  SnowflakeIcon,
+  WheatIcon,
+  type LucideIcon,
+} from "lucide-react";
 import Image from "next/image";
 import { useOptimistic, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
@@ -62,11 +78,22 @@ export interface PurchaseView {
   substitution: string | null;
   imageUrl: string | null;
   manual: boolean;
+  /** The chosen store has no price: this one comes from elsewhere (see RetailOffer.fallback). */
+  fallback: "other_store" | "demo" | null;
+}
+
+export interface IngredientPhotoView {
+  url: string;
+  credit: string | null;
+  sourceUrl: string | null;
 }
 
 export interface ShoppingLineView {
   ingredientId: string;
   name: string;
+  aisle: string;
+  /** Generic photo of the ingredient, used when the product has none. */
+  photo: IngredientPhotoView | null;
   neededLabel: string;
   fromPantryLabel: string | null;
   leftoverLabel: string | null;
@@ -100,7 +127,9 @@ function ManualPrice({ line, existing }: { line: ShoppingLineView; existing: boo
   const [open, setOpen] = useState(false);
   const [pending, start] = useTransition();
   const [price, setPrice] = useState("");
-  const [quantity, setQuantity] = useState(String(line.purchaseUnit === "piece" ? Math.max(1, line.toBuy) : line.toBuy > 0 ? line.toBuy : ""));
+  const [quantity, setQuantity] = useState(
+    String(line.purchaseUnit === "piece" ? Math.max(1, line.toBuy) : line.toBuy > 0 ? line.toBuy : ""),
+  );
   const idBase = `manual-${line.ingredientId}`;
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -118,7 +147,12 @@ function ManualPrice({ line, existing }: { line: ShoppingLineView; existing: boo
             const priceEuros = Number.parseFloat(price.replace(",", "."));
             const packQuantity = Number.parseFloat(quantity.replace(",", "."));
             start(async () => {
-              const res = await setManualPriceAction({ ingredientId: line.ingredientId, priceEuros, packQuantity, packUnit: line.purchaseUnit });
+              const res = await setManualPriceAction({
+                ingredientId: line.ingredientId,
+                priceEuros,
+                packQuantity,
+                packUnit: line.purchaseUnit,
+              });
               if (!res.ok) toast.error(res.fieldErrors ? Object.values(res.fieldErrors)[0] : res.error);
               else {
                 toast.success(res.message ?? "Prix enregistré.");
@@ -131,11 +165,24 @@ function ManualPrice({ line, existing }: { line: ShoppingLineView; existing: boo
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-1">
               <Label htmlFor={`${idBase}-price`}>Prix (€)</Label>
-              <Input id={`${idBase}-price`} inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="2,35" required />
+              <Input
+                id={`${idBase}-price`}
+                inputMode="decimal"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="2,35"
+                required
+              />
             </div>
             <div className="flex flex-col gap-1">
               <Label htmlFor={`${idBase}-qty`}>Pour ({UNIT_LABEL[line.purchaseUnit]})</Label>
-              <Input id={`${idBase}-qty`} inputMode="decimal" value={quantity} onChange={(e) => setQuantity(e.target.value)} required />
+              <Input
+                id={`${idBase}-qty`}
+                inputMode="decimal"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                required
+              />
             </div>
           </div>
           <p className="text-xs text-muted-foreground">Visible uniquement par votre foyer, pour ce magasin.</p>
@@ -149,14 +196,57 @@ function ManualPrice({ line, existing }: { line: ShoppingLineView; existing: boo
   );
 }
 
-function ProductThumb({ purchase }: { purchase: PurchaseView | undefined }) {
-  if (!purchase?.imageUrl) return null;
+const AISLE_ICONS: Record<string, LucideIcon> = {
+  fruits_legumes: SaladIcon,
+  boucherie: BeefIcon,
+  poissonnerie: FishIcon,
+  frais: MilkIcon,
+  epicerie: WheatIcon,
+  surgeles: SnowflakeIcon,
+  boulangerie: CroissantIcon,
+  boissons: CupSodaIcon,
+};
+
+/**
+ * Always a picture: the product's own photo (Open Food Facts), otherwise a
+ * generic photo of the ingredient (Pexels, an illustration), otherwise an
+ * icon of the aisle.
+ */
+function LineThumb({ line }: { line: ShoppingLineView }) {
+  const product = line.purchases.find((p) => p.imageUrl);
+  if (product?.imageUrl) {
+    return (
+      <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border bg-white">
+        <Image src={product.imageUrl} alt={product.productName} fill sizes="48px" className="object-contain p-0.5" />
+      </div>
+    );
+  }
+  if (line.photo) {
+    return (
+      <div
+        className="relative size-12 shrink-0 overflow-hidden rounded-lg border bg-muted"
+        title="Illustration de l'ingrédient, pas le produit exact"
+      >
+        <Image src={line.photo.url} alt={`${line.name} (illustration)`} fill sizes="48px" className="object-cover" />
+      </div>
+    );
+  }
+  const Icon = AISLE_ICONS[line.aisle] ?? PackageIcon;
   return (
-    <div className="relative size-12 shrink-0 overflow-hidden rounded-lg border bg-white">
-      <Image src={purchase.imageUrl} alt={purchase.productName} fill sizes="48px" className="object-contain p-0.5" />
+    <div
+      aria-hidden
+      className="flex size-12 shrink-0 items-center justify-center rounded-lg border bg-muted text-muted-foreground"
+      data-testid="line-icon"
+    >
+      <Icon className="size-6" />
     </div>
   );
 }
+
+const FALLBACK_TAGS = {
+  other_store: { label: "autre magasin", className: "bg-saffron-soft text-saffron-ink" },
+  demo: { label: "prix fictif", className: "bg-paprika-soft text-paprika-ink" },
+} as const;
 
 function Line({
   line,
@@ -170,17 +260,29 @@ function Line({
   retailer: RetailerLink | null;
 }) {
   const id = `line-${line.ingredientId}`;
+  const fallback = line.purchases.find((p) => p.fallback)?.fallback ?? null;
   return (
     <li className={cn("flex gap-3 px-4 py-3 transition-opacity", checked && "opacity-55")}>
       <Checkbox id={id} checked={checked} onCheckedChange={(v) => onToggle(v === true)} className="mt-0.5 size-6 rounded-md" />
-      <ProductThumb purchase={line.purchases.find((p) => p.imageUrl)} />
+      <LineThumb line={line} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-start justify-between gap-3">
           <label htmlFor={id} className={cn("font-medium", checked && "line-through decoration-2")}>
             {line.name}
           </label>
-          <span className="shrink-0 font-semibold tabular">
-            {line.costCents !== null ? formatEuros(line.costCents) : <span className="font-normal text-muted-foreground">Prix indisponible</span>}
+          <span className="flex shrink-0 flex-col items-end gap-0.5">
+            <span className="font-semibold tabular" data-testid="line-price">
+              {line.costCents !== null ? (
+                formatEuros(line.costCents)
+              ) : (
+                <span className="font-normal text-muted-foreground">Prix à indiquer</span>
+              )}
+            </span>
+            {fallback ? (
+              <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", FALLBACK_TAGS[fallback].className)}>
+                {FALLBACK_TAGS[fallback].label}
+              </span>
+            ) : null}
           </span>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
@@ -199,7 +301,9 @@ function Line({
               </p>
             ) : null}
           </div>
-          {line.priceMissing || line.purchases.some((p) => p.manual) ? <ManualPrice line={line} existing={!line.priceMissing} /> : null}
+          {line.priceMissing || fallback || line.purchases.some((p) => p.manual) ? (
+            <ManualPrice line={line} existing={line.purchases.some((p) => p.manual)} />
+          ) : null}
           {retailer ? (
             <a
               href={retailer.search(searchQueryFor(line.name))}
@@ -249,9 +353,36 @@ function Line({
                   ) : null}
                 </p>
                 {p.substitution ? <p className="text-saffron-ink">Substitution : {p.substitution}</p> : null}
+                {p.fallback === "other_store" ? (
+                  <p className="text-saffron-ink">
+                    Votre magasin n'a pas de prix pour cet ingrédient : prix relevé ailleurs, à titre indicatif.
+                  </p>
+                ) : null}
+                {p.fallback === "demo" ? (
+                  <p className="text-paprika-ink">
+                    Aucun prix réel connu : prix fictif du catalogue de démonstration, en attendant le vôtre.
+                  </p>
+                ) : null}
                 {p.imageUrl ? <p className="text-muted-foreground">Photo du produit : Open Food Facts (CC BY-SA)</p> : null}
               </div>
             ))}
+            {!line.purchases.some((p) => p.imageUrl) && line.photo ? (
+              <p className="text-muted-foreground">
+                Illustration de l'ingrédient, pas le produit exact
+                {line.photo.credit ? (
+                  <>
+                    {" · "}
+                    {line.photo.sourceUrl ? (
+                      <a href={line.photo.sourceUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                        {line.photo.credit}
+                      </a>
+                    ) : (
+                      line.photo.credit
+                    )}
+                  </>
+                ) : null}
+              </p>
+            ) : null}
             {line.fromPantryLabel ? <p>Déjà dans votre placard : {line.fromPantryLabel}</p> : null}
             {line.leftoverLabel ? (
               <p className={line.leftoverIsWaste ? "text-saffron-ink" : ""}>
@@ -267,7 +398,15 @@ function Line({
   );
 }
 
-export function ShoppingList({ planId, aisles, initiallyChecked }: { planId: string; aisles: AisleView[]; initiallyChecked: string[] }) {
+export function ShoppingList({
+  planId,
+  aisles,
+  initiallyChecked,
+}: {
+  planId: string;
+  aisles: AisleView[];
+  initiallyChecked: string[];
+}) {
   const [checked, setChecked] = useState(() => new Set(initiallyChecked));
   const [optimistic, setOptimistic] = useOptimistic(checked, (state, { id, value }: { id: string; value: boolean }) => {
     const next = new Set(state);
@@ -293,7 +432,14 @@ export function ShoppingList({ planId, aisles, initiallyChecked }: { planId: str
 
   async function copyList() {
     const text = aisles
-      .map((a) => [`${a.label}`, ...a.lines.map((l) => `- ${l.name} : ${l.purchases.map((p) => `${p.count} × ${p.packLabel}`).join(" + ") || l.neededLabel}`)].join("\n"))
+      .map((a) =>
+        [
+          `${a.label}`,
+          ...a.lines.map(
+            (l) => `- ${l.name} : ${l.purchases.map((p) => `${p.count} × ${p.packLabel}`).join(" + ") || l.neededLabel}`,
+          ),
+        ].join("\n"),
+      )
       .join("\n\n");
     try {
       await navigator.clipboard.writeText(text);
@@ -335,7 +481,8 @@ export function ShoppingList({ planId, aisles, initiallyChecked }: { planId: str
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <p className="text-sm font-medium">Commander en drive</p>
           <p className="text-xs text-muted-foreground">
-            Ouvrez chaque produit dans la recherche de votre enseigne, ou copiez la liste. L'envoi direct du panier nécessite un partenariat avec l'enseigne.
+            Ouvrez chaque produit dans la recherche de votre enseigne, ou copiez la liste. L'envoi direct du panier nécessite un
+            partenariat avec l'enseigne.
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">

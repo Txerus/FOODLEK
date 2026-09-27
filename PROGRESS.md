@@ -9,7 +9,7 @@ _Dernière mise à jour : 27 septembre 2026._
 - Objectif de poids : poids souhaité et délai (2 mois à 1 an ou « pas de délai ») pour les profils détaillés en perte ou prise de poids. Le déficit/surplus en découle (7 700 kcal/kg), plafonné à un rythme sûr (perte ≤ 1 % du poids et ≤ 1 kg/semaine, déficit ≤ 750 kcal/j, jamais sous le plancher ; prise ≤ 0,5 %/semaine) ; cible ramenée à un IMC de 18,5 au minimum. Projection affichée en direct dans l'onboarding et sur la page Nutrition ; les portions de chaque plat suivent ces besoins.
 - Visuels des recettes : illustration originale générée à partir des ingrédients de chaque recette (cartes, fiche, tableau de bord, site public), remplacée automatiquement par une photo déclarée dans `data/recipe-images.json`.
 - **Prix réels par enseigne** : « Magasins et prix » → enseigne + ville + rayon → prix réellement payés dans les magasins de l'enseigne autour de la ville (Open Prices, ODbL), produits à code-barres et vrac, magasin créé et sélectionné ; chaque prix indique le magasin et la date du relevé. Aussi en ligne de commande : `pnpm prix:enseigne`.
-- Liste de courses : photo et nom exact du produit (Open Food Facts), bouton « Indiquer le prix » quand un prix manque (prix visible par le seul foyer, pour son magasin) ; en dernier recours, prix vu dans une autre enseigne, marqué « autre enseigne » et « estimation ».
+- Liste de courses : **toujours une image** (photo du produit Open Food Facts, recherchée aussi par code-barres ; sinon photo d'illustration de l'ingrédient ; sinon icône du rayon) et **toujours un prix** quand il en existe un quelque part (magasin choisi → prix saisi par le foyer → prix relevé dans un autre magasin, « autre magasin » → prix fictif de démonstration, « prix fictif »), avec le montant de chaque repli en haut de la liste et un bouton « Indiquer le prix » sur chaque ligne estimée.
 - **Catalogue élargi** : 159 recettes originales (plats volaille, bœuf, porc, poisson, fruits de mer, végétarien ; petits-déjeuners ; desserts ; goûters), 117 ingrédients avec composition USDA, produits de démonstration et catégories Open Prices ; filtres Plats / Desserts / Goûters ; le repas « Dessert ou goûter » se planifie comme les autres.
 - **Audit des calculs (27/09/2026)** : vérification indépendante des prix, kcal, portions et coûts par plat. Corrigés : arrondi des portions par assiette qui gonflait certaines quantités (½ œuf minimum par part…), vrac plafonné à 1,2 kg, lecture des étiquettes « 12 x 53 g » et « 3 x 104 g égoutté », prix promotionnels sans prix de référence, objectif de perte de poids au-dessus de la maintenance, coût des cartes recette ignorant les préférences, beurre doux et crème 30 % (entrées USDA), fibres marquées « ≥ » quand une valeur manque.
 - Prix de chaque plat dans la semaine et sur l'accueil : valeur des ingrédients utilisés au prix payé (placard exclu), prix par assiette ; les restes renvoient au plat d'origine.
@@ -26,7 +26,7 @@ _Dernière mise à jour : 27 septembre 2026._
 
 ## Tests
 
-- 286 tests unitaires, 12 tests d'intégration PostgreSQL, 4 tests Playwright (parcours complet desktop, redirection, 8 pages mobiles sans débordement + courses).
+- 289 tests unitaires, 17 tests d'intégration PostgreSQL, 4 tests Playwright (parcours complet desktop, redirection, 8 pages mobiles sans débordement + courses).
 - `pnpm build` passe.
 
 ## Limites connues

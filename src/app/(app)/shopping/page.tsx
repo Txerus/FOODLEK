@@ -29,6 +29,8 @@ function toView(line: ShoppingLine, ing: Ingredient, now: Date): ShoppingLineVie
   return {
     ingredientId: line.ingredientId,
     name: line.ingredientName,
+    aisle: ing.aisle,
+    photo: ing.photo ?? null,
     neededLabel: amount(line.needed, ing),
     fromPantryLabel: line.fromPantry > 0 ? amount(line.fromPantry, ing) : null,
     leftoverLabel: line.leftover >= 1 ? amount(line.leftover, ing) : null,
@@ -51,6 +53,7 @@ function toView(line: ShoppingLine, ing: Ingredient, now: Date): ShoppingLineVie
       substitution: c.offer.substitution,
       imageUrl: c.offer.imageUrl ?? null,
       manual: c.offer.manual ?? false,
+      fallback: c.offer.fallback ?? null,
     })),
     costCents: line.costCents,
     quality: line.quality,
@@ -108,14 +111,41 @@ export default async function ShoppingPage() {
         <Alert>
           <AlertTitle>Aucun magasin sélectionné</AlertTitle>
           <AlertDescription>
-            Les quantités sont exactes, mais aucun prix n'est affiché. <Link href="/household" className="underline">Choisir un magasin</Link>
+            Les prix affichés sont ceux relevés dans d'autres magasins, à titre indicatif.{" "}
+            <Link href="/stores" className="underline">
+              Choisir votre enseigne
+            </Link>
           </AlertDescription>
         </Alert>
       )}
-      {shopping.missingPriceCount > 0 && view.store ? (
+      {shopping.otherStoreLineCount > 0 || shopping.demoFallbackLineCount > 0 ? (
         <Alert>
-          <AlertTitle>{shopping.missingPriceCount} produit(s) sans prix dans ce magasin</AlertTitle>
-          <AlertDescription>Le total affiché ne les inclut pas. Aucun prix n'est inventé.</AlertDescription>
+          <AlertTitle>Des prix viennent d'ailleurs</AlertTitle>
+          <AlertDescription>
+            <ul className="list-disc pl-4">
+              {shopping.otherStoreLineCount > 0 ? (
+                <li>
+                  {shopping.otherStoreLineCount} produit(s), {formatEuros(shopping.otherStoreCents)} : prix relevé(s) dans un
+                  autre magasin (étiquette « autre magasin »).
+                </li>
+              ) : null}
+              {shopping.demoFallbackLineCount > 0 ? (
+                <li>
+                  {shopping.demoFallbackLineCount} produit(s), {formatEuros(shopping.demoFallbackCents)} : aucun prix réel connu,
+                  prix fictif de démonstration (étiquette « prix fictif »).
+                </li>
+              ) : null}
+            </ul>
+            Indiquez le prix que vous payez sur la ligne concernée : il remplace l'estimation pour votre foyer.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+      {shopping.missingPriceCount > 0 ? (
+        <Alert>
+          <AlertTitle>{shopping.missingPriceCount} produit(s) sans aucun prix connu</AlertTitle>
+          <AlertDescription>
+            Le total affiché ne les inclut pas. Aucun prix n'est inventé : indiquez-le sur la ligne concernée.
+          </AlertDescription>
         </Alert>
       ) : null}
       <ShoppingList planId={planId} aisles={aisles} initiallyChecked={[...view.checkedIngredientIds]} />

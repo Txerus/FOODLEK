@@ -4,12 +4,7 @@ import { MEAL_TYPE_LABELS, type MealType, type Recipe } from "@/domain/catalog/t
 import { computeTargets } from "@/domain/nutrition/targets";
 import { explainPlan, type Explanation } from "@/domain/planning/explain";
 import { eligibleRecipes } from "@/domain/planning/evaluate";
-import {
-  evaluateAssignment,
-  optimizePlan,
-  replaceSlot,
-  type ReplacementReason,
-} from "@/domain/planning/optimizer";
+import { evaluateAssignment, optimizePlan, replaceSlot, type ReplacementReason } from "@/domain/planning/optimizer";
 import {
   DEFAULT_WEIGHTS,
   type Assignment,
@@ -28,7 +23,7 @@ import { newId } from "../ids";
 import { errorContext, logger } from "../observability/logger";
 import { getCatalog, type Catalog } from "./catalog";
 import { loadHouseholdContext, type HouseholdContext } from "./households";
-import { getStore, loadOffersForStore, type StoreSummary } from "./offers";
+import { getStore, loadShoppingOffers, type StoreSummary } from "./offers";
 
 export const MEAL_ORDER: MealType[] = ["breakfast", "lunch", "snack", "dinner"];
 // Larger catalogue (≈ 110 recipes): more search steps, still ≈ 0,3 s per generation.
@@ -85,7 +80,12 @@ async function previousWeekRecipes(householdId: string, weekStart: string): Prom
   const slots = await db()
     .select({ recipeId: t.mealPlanSlots.recipeId })
     .from(t.mealPlanSlots)
-    .where(inArray(t.mealPlanSlots.planId, plans.map((p) => p.id)));
+    .where(
+      inArray(
+        t.mealPlanSlots.planId,
+        plans.map((p) => p.id),
+      ),
+    );
   return [...new Set(slots.map((s) => s.recipeId).filter((x): x is string => x !== null))];
 }
 
@@ -110,12 +110,13 @@ export async function buildPlanningInputs(
   // A failing price source must never prevent planning: we plan without prices.
   let offers: OfferIndex = new Map();
   let store: StoreSummary | null = null;
-  if (settings.storeId) {
-    try {
-      [store, offers] = await Promise.all([getStore(settings.storeId), loadOffersForStore(settings.storeId, today, householdId)]);
-    } catch (error) {
-      logger.error("plan.offers_failed", { householdId, ...errorContext(error) });
-    }
+  try {
+    [store, offers] = await Promise.all([
+      settings.storeId ? getStore(settings.storeId) : Promise.resolve(null),
+      loadShoppingOffers(settings.storeId, today, householdId),
+    ]);
+  } catch (error) {
+    logger.error("plan.offers_failed", { householdId, ...errorContext(error) });
   }
 
   const [feedback, lastWeek] = await Promise.all([feedbackFor(householdId), previousWeekRecipes(householdId, weekStart)]);
@@ -152,9 +153,7 @@ export async function buildPlanningInputs(
 }
 
 async function writePlanSlots(planId: string, slots: PlanSlot[], assignment: Assignment, locked: Record<string, string>) {
-  await db()
-    .delete(t.mealPlanSlots)
-    .where(eq(t.mealPlanSlots.planId, planId));
+  await db().delete(t.mealPlanSlots).where(eq(t.mealPlanSlots.planId, planId));
   if (slots.length === 0) return;
   await db()
     .insert(t.mealPlanSlots)
@@ -362,7 +361,10 @@ export async function replaceMeal(
   }
   const input: PlannerInput =
     reason === "dislike" && currentId
-      ? { ...view.input, preferences: { ...view.input.preferences, dislikedRecipeIds: [...view.input.preferences.dislikedRecipeIds, currentId] } }
+      ? {
+          ...view.input,
+          preferences: { ...view.input.preferences, dislikedRecipeIds: [...view.input.preferences.dislikedRecipeIds, currentId] },
+        }
       : view.input;
   const result = replaceSlot(input, view.evaluation.assignment, slotKey, reason);
   if (!result.evaluation) return { message: result.message, recipeTitle: null };

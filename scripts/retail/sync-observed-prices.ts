@@ -39,7 +39,13 @@ async function main() {
   try {
     const result = await syncObservedPrices(
       database,
-      INGREDIENT_SEEDS.map((s) => ({ id: ingredientId(s.slug), slug: s.slug, name: s.name, purchaseUnit: s.purchaseUnit, measures: s.measures })),
+      INGREDIENT_SEEDS.map((s) => ({
+        id: ingredientId(s.slug),
+        slug: s.slug,
+        name: s.name,
+        purchaseUnit: s.purchaseUnit,
+        measures: s.measures,
+      })),
       {
         retailerSlug,
         city,
@@ -50,8 +56,10 @@ async function main() {
       },
     );
     process.stdout.write(
-      `\n${result.storeName}\n${result.priceCount} prix enregistrés pour ${result.priced.length} ingrédients.\n` +
-        (result.missing.length ? `Sans prix observé (${result.missing.length}) : ${result.missing.join(", ")}\n` : "") +
+      `\n${result.storeName}\n${result.priceCount} prix enregistrés pour ${result.priced.length} ingrédients, ${result.imagesAdded} photo(s) de produit ajoutée(s).\n` +
+        (result.missing.length
+          ? `Sans prix observé (${result.missing.length}) : ${result.missing.join(", ")}\n(la liste de courses utilisera un prix d'un autre magasin, sinon le prix fictif de démonstration, signalés comme tels)\n`
+          : "") +
         `\nChoisissez ce magasin dans FOODLEK (Magasins et prix), puis régénérez la semaine.\n`,
     );
   } catch (e) {

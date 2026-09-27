@@ -45,3 +45,18 @@ export async function searchPexels(query: string, apiKey: string, fetchImpl: typ
   if (!res.ok) throw new Error(`Pexels a répondu ${res.status}.`);
   return res.json();
 }
+
+export interface IngredientPhoto {
+  url: string;
+  credit: string;
+  sourceUrl: string;
+}
+
+/**
+ * First usable photo of a search, at a size fit for a thumbnail. Used as the
+ * generic picture of an ingredient, never as the photo of a product.
+ */
+export function pickIngredientPhoto(json: unknown): IngredientPhoto | null {
+  const photo = pexelsSearchSchema.parse(json).photos.find((p) => new URL(p.src.large).hostname === "images.pexels.com");
+  return photo ? { url: photo.src.large, credit: `Photo : ${photo.photographer} / Pexels`, sourceUrl: photo.url } : null;
+}
