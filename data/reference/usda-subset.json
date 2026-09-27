@@ -2187,6 +2187,74 @@
       ],
       "url": "https://fdc.nal.usda.gov/food-details/173627/nutrients"
     },
+    "173430": {
+      "fdcId": "173430",
+      "name": "Butter, without salt",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 717.0,
+        "proteinG": 0.85,
+        "fatG": 81.11,
+        "carbsG": 0.06,
+        "fiberG": 0.0,
+        "sugarsG": 0.06,
+        "saturatedFatG": 50.489,
+        "sodiumMg": 11.0
+      },
+      "portions": [
+        {
+          "description": "1 pat (1\" sq, 1/3\" high)",
+          "grams": 5.0
+        },
+        {
+          "description": "1 tbsp",
+          "grams": 14.2
+        },
+        {
+          "description": "1 cup",
+          "grams": 227.0
+        },
+        {
+          "description": "1 stick",
+          "grams": 113.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/173430/nutrients"
+    },
+    "170858": {
+      "fdcId": "170858",
+      "name": "Cream, fluid, light whipping",
+      "source": "USDA_SR_LEGACY",
+      "sourceLabel": "USDA FoodData Central – SR Legacy",
+      "sourceVersion": "SR Legacy (2018-04)",
+      "per100g": {
+        "energyKcal": 292.0,
+        "proteinG": 2.17,
+        "fatG": 30.91,
+        "carbsG": 2.96,
+        "fiberG": 0.0,
+        "sugarsG": 2.96,
+        "saturatedFatG": 19.337,
+        "sodiumMg": 34.0
+      },
+      "portions": [
+        {
+          "description": "1 cup, whipped",
+          "grams": 120.0
+        },
+        {
+          "description": "1 cup, fluid (yields 2 cups whipped)",
+          "grams": 239.0
+        },
+        {
+          "description": "1 tbsp",
+          "grams": 15.0
+        }
+      ],
+      "url": "https://fdc.nal.usda.gov/food-details/170858/nutrients"
+    },
     "332397": {
       "fdcId": "332397",
       "name": "Ham, sliced, pre-packaged, deli meat (96%fat free, water added)",

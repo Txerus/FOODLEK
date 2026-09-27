@@ -91,4 +91,19 @@ describe("cookingQuantities", () => {
       c.items.find((i) => i.ingredientId === "ing_blanc-de-poulet")!.grams;
     expect(chicken?.grams).toBeCloseTo(expected);
   });
+
+  it("does not inflate small piece or spoon amounts by rounding each plate", () => {
+    // Cookies: 1 egg for 12 servings. Each plate holds ≈ 1/12 egg, not ½ egg.
+    const cookies = RECIPES.find((r) => r.slug === "cookies-pepites-chocolat")!;
+    const target = mealTarget(camille, computeTargets(camille, TODAY), "snack");
+    const plates = Array.from({ length: 12 }, (_, i) =>
+      computeMemberPortion(cookies, ingredientIndex, { memberId: `m${i}`, name: "x", target, favourVegetables: false }),
+    );
+    const egg = cookingQuantities(plates).find((q) => q.ingredientId === "ing_oeuf")!;
+    const perPlate = plates[0].items.find((i) => i.ingredientId === "ing_oeuf")!;
+    expect(perPlate.grams).toBeLessThan(10);
+    expect(egg.grams).toBeCloseTo(plates.reduce((s, p) => s + p.items.find((i) => i.ingredientId === "ing_oeuf")!.grams, 0));
+    // The cook reads a rounded total (about one egg at most, never six).
+    expect(egg.quantity).toBeLessThanOrEqual(1.5);
+  });
 });

@@ -152,20 +152,27 @@ export function parseQuantityText(text: string): { quantity: number; unit: "g" |
 /** Drained weight stated on a can: "400 g (265 g égoutté)", "Poids net égoutté : 140 g". */
 export function parseDrainedWeight(text: string): number | null {
   const t = normalizeText(text);
-  const after = t.match(/(\d+(?:[.,]\d+)?)\s*g\s*(?:net\s*)?egoutt/);
-  if (after) return Number.parseFloat(after[1].replace(",", "."));
-  const before = t.match(/egoutt[a-z]*\s*:?\s*(\d+(?:[.,]\d+)?)\s*g\b/);
-  return before ? Number.parseFloat(before[1].replace(",", ".")) : null;
+  // "3 x 104 g égoutté": the lot's drained weight is 3 × 104 g.
+  const after = t.match(/(?:(\d{1,2})\s*[x×*]\s*)?(\d+(?:[.,]\d+)?)\s*g\s*(?:net\s*)?egoutt/);
+  if (after) return (after[1] ? Number(after[1]) : 1) * Number.parseFloat(after[2].replace(",", "."));
+  const before = t.match(/egoutt[a-z]*\s*:?\s*(?:(\d{1,2})\s*[x×*]\s*)?(\d+(?:[.,]\d+)?)\s*g\b/);
+  return before ? (before[1] ? Number(before[1]) : 1) * Number.parseFloat(before[2].replace(",", ".")) : null;
 }
 
 /** "boîte de 6", "x12", "6 œufs", "8 tortillas", or a bare "6". */
 export function parsePieceCount(text: string): number | null {
   const t = normalizeText(text).trim();
   if (/^\d{1,2}$/.test(t)) return Number(t);
+  // "2 x 6 oeufs", "lot de 2 x 6": lots of boxes.
+  const boxes = t.match(/(?:^|lot de\s+)(\d)\s*[x×*]\s*(\d{1,2})\b(?!\s*(?:[.,]\d)?\s*(?:kg|gr|g|cl|ml|l)\b)/);
+  if (boxes) return Number(boxes[1]) * Number(boxes[2]);
+  // "12 x 53 g": 12 pieces of 53 g (the number after "x" is a weight, not a count).
+  const lot = t.match(/^(\d{1,3})\s*[x×*]\s*\d+(?:[.,]\d+)?\s*(?:kg|gr|g|cl|ml|l)\b/);
+  if (lot) return Number(lot[1]);
   const m =
     t.match(/(?:boite|lot|paquet|sachet|filet|barquette)\s+de\s+(\d{1,2})\b/) ??
-    t.match(/(?:^|\s)[x×]\s*(\d{1,2})\b/) ??
-    t.match(/\b(\d{1,2})\s*(?:oeufs?|œufs?|pieces?|pcs?|tortillas?|wraps?|galettes?|unites?|fruits?|avocats?|citrons?)\b/);
+    t.match(/(?:^|\s)[x×]\s*(\d{1,2})\b(?!\s*(?:[.,]\d)?\s*(?:kg|gr|g|cl|ml|l)\b)/) ??
+    t.match(/\b(\d{1,2})\s*(?:(?:gros|moyens?|petits?|frais|extra-frais)\s+)?(?:oeufs?|œufs?|pieces?|pcs?|tortillas?|wraps?|galettes?|unites?|fruits?|avocats?|citrons?)\b/);
   return m ? Number(m[1]) : null;
 }
 
@@ -228,6 +235,8 @@ export function regularPriceCents(p: OpenPricesPrice): { cents: number; wasPromo
   if (p.price_is_discounted) {
     const regular = toNumber(p.price_without_discount);
     if (regular !== null && regular > 0) return { cents: Math.round(regular * 100), wasPromotion: true };
+    // A promotional price without the regular one would understate the basket: skip it.
+    return null;
   }
   return { cents: Math.round(paid * 100), wasPromotion: false };
 }
@@ -365,8 +374,11 @@ export function looseOffer(
     let pack: Pack | null = null;
     let priceCents = 0;
     if (per === "KILOGRAM" && ingredient.purchaseUnit === "g") {
+      // Loose produce is weighed: 100 g steps keep the bought quantity close to
+      // the need (a coarser step would buy far too much). The step price is
+      // rounded to the cent; the €/kg shown stays the observed one.
       pack = { quantity: 100, unit: "g", label: `vrac, ${formatEurosPlain(m)}/kg (par 100 g)` };
-      priceCents = Math.round(m / 10);
+      priceCents = Math.max(1, Math.round(m / 10));
     } else if (per === "UNIT" && ingredient.purchaseUnit === "piece") {
       pack = { quantity: 1, unit: "piece", label: `à la pièce, ${formatEurosPlain(m)}` };
       priceCents = m;
@@ -384,7 +396,8 @@ export function looseOffer(
       brand: null,
       pack,
       priceCents,
-      unitPriceCents: unitPrice(priceCents, pack),
+      // The unit price shown is the observed one, not the rounded step price.
+      unitPriceCents: per === "KILOGRAM" && pack.unit === "g" ? m : unitPrice(priceCents, pack),
       observedAt: new Date(`${last.p.date}T12:00:00Z`),
       observedWhere: where,
       observationCount: obs.length,

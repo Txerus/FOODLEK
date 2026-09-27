@@ -104,10 +104,11 @@ export function roundForKitchen(quantity: number, unit: Unit): number {
       if (quantity < 100) return Math.round(quantity / 5) * 5;
       return Math.round(quantity / 10) * 10;
     case "piece":
-      return Math.max(0.5, Math.round(quantity * 2) / 2);
     case "tbsp":
     case "tsp":
-      return Math.max(0.5, Math.round(quantity * 2) / 2);
+      // Quarters below 1 (¼ citron, ¼ c. à café), halves above.
+      if (quantity < 1) return Math.max(0.25, Math.round(quantity * 4) / 4);
+      return Math.round(quantity * 2) / 2;
     case "kg":
     case "l":
       return Math.round(quantity * 100) / 100;

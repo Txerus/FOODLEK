@@ -103,10 +103,10 @@ describe("offers from observed prices", () => {
     expect(offer.unitPriceCents).toBe(37);
   });
 
-  it("turns loose produce into 100 g steps from the median price per kg", () => {
+  it("turns loose produce into weighing steps from the median price per kg", () => {
     const loose = [2.49, 2.99, 2.29].map((p, i) => price({ id: 10 + i, type: "CATEGORY", category_tag: "en:zucchini", price_per: "KILOGRAM", price: p, date: `2026-09-1${i}` }));
     const offer = looseOffer(loose, { name: "Courgette", purchaseUnit: "g", measures: { gramsPerPiece: 196 } }, true);
-    expect(offer).toMatchObject({ ean: null, priceCents: 25, observationCount: 3, observedWhere: "médiane de 3 relevés" });
+    expect(offer).toMatchObject({ ean: null, priceCents: 25, unitPriceCents: 249, observationCount: 3, observedWhere: "médiane de 3 relevés" });
     expect(offer?.pack).toMatchObject({ quantity: 100, unit: "g" });
   });
 
@@ -121,5 +121,47 @@ describe("offers from observed prices", () => {
   it("parses an API page", () => {
     const page = pageOf(priceSchema).parse({ items: [{ id: 1, price: "1.5", currency: "EUR", product: null }], page: 1, pages: 1, size: 100, total: 1 });
     expect(page.items[0].price).toBe("1.5");
+  });
+});
+
+describe("audit regressions", () => {
+  it("reads the count, not the unit weight, in '12 x 53 g'", () => {
+    expect(parsePieceCount("12 x 53 g")).toBe(12);
+    expect(parsePieceCount("6 x 63 g")).toBe(6);
+    expect(parsePieceCount("boîte x6")).toBe(6);
+  });
+
+  it("multiplies the drained weight of multi-can lots", () => {
+    expect(parseDrainedWeight("3 x 140 g (3 x 104 g égoutté)")).toBe(312);
+    expect(parseDrainedWeight("3 x 112 g égoutté")).toBe(336);
+    expect(parseDrainedWeight("400 g (265 g égoutté)")).toBe(265);
+  });
+
+  it("skips a promotional price without its regular price", () => {
+    const p = price({ id: 30, product_code: "9", price: 1, price_is_discounted: true, product: { code: "9", product_name: "Riz long", product_quantity: 1000, product_quantity_unit: "g", categories_tags: ["en:long-grain-rices"] } });
+    expect(productOffers([p], { purchaseUnit: "g", measures: {} }, OBSERVED_PRICE_SPECS["riz-long"], true)).toHaveLength(0);
+  });
+
+  it("keeps the observed €/kg as unit price for loose produce", () => {
+    const loose = [price({ id: 40, type: "CATEGORY", category_tag: "en:potatoes", price_per: "KILOGRAM", price: 0.95 })];
+    const offer = looseOffer(loose, { name: "Pommes de terre", purchaseUnit: "g", measures: {} }, true)!;
+    expect(offer.unitPriceCents).toBe(95);
+  });
+});
+
+describe("second audit", () => {
+  it("counts boxes in lots and adjectives before 'œufs'", () => {
+    expect(parsePieceCount("2 x 6 oeufs")).toBe(12);
+    expect(parsePieceCount("lot de 2 x 6")).toBe(12);
+    expect(parsePieceCount("6 gros oeufs")).toBe(6);
+    expect(parsePieceCount("6 x 63 g")).toBe(6);
+  });
+
+  it("keeps 100 g steps for cheap loose produce", () => {
+    const loose = [price({ id: 50, type: "CATEGORY", category_tag: "en:potatoes", price_per: "KILOGRAM", price: 0.4 })];
+    const offer = looseOffer(loose, { name: "Pommes de terre", purchaseUnit: "g", measures: {} }, true)!;
+    expect(offer.pack.quantity).toBe(100);
+    expect(offer.priceCents).toBe(4);
+    expect(offer.unitPriceCents).toBe(40);
   });
 });

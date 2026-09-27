@@ -12,13 +12,7 @@ import {
 export const SEXES = ["male", "female", "unspecified"] as const;
 export type Sex = (typeof SEXES)[number];
 
-export const SPECIAL_SITUATIONS = [
-  "pregnancy",
-  "breastfeeding",
-  "eating_disorder",
-  "medical_diet",
-  "medical_followup",
-] as const;
+export const SPECIAL_SITUATIONS = ["pregnancy", "breastfeeding", "eating_disorder", "medical_diet", "medical_followup"] as const;
 export type SpecialSituation = (typeof SPECIAL_SITUATIONS)[number];
 
 export const SPECIAL_SITUATION_LABELS: Record<SpecialSituation, string> = {
@@ -113,8 +107,7 @@ const PROTECTED_MESSAGES: Record<SpecialSituation, string> = {
     "Nous n'affichons ni calories ni objectifs chiffrés pour ce profil. Les portions suivent simplement l'appétit. Un accompagnement professionnel reste la meilleure aide.",
   medical_diet:
     "Un régime médical doit être défini par un professionnel de santé. FOODLEK ne remplace pas ce suivi : les portions suivent l'appétit, sans objectif chiffré.",
-  medical_followup:
-    "Votre situation nécessite un avis médical. Les portions suivent l'appétit, sans objectif chiffré.",
+  medical_followup: "Votre situation nécessite un avis médical. Les portions suivent l'appétit, sans objectif chiffré.",
 };
 
 function simplifiedTargets(
@@ -169,15 +162,13 @@ export function computeTargets(
   }
 
   const hasBody =
-    profile.mode === "detailed" &&
-    profile.weightKg !== null &&
-    profile.heightCm !== null &&
-    age !== null &&
-    profile.sex !== null;
+    profile.mode === "detailed" && profile.weightKg !== null && profile.heightCm !== null && age !== null && profile.sex !== null;
 
   if (!hasBody) {
     if (profile.goal === "lose") {
-      warnings.push("Un objectif de perte de poids nécessite le poids, la taille, l'âge et le sexe physiologique. Sans ces informations, les portions suivent l'appétit.");
+      warnings.push(
+        "Un objectif de perte de poids nécessite le poids, la taille, l'âge et le sexe physiologique. Sans ces informations, les portions suivent l'appétit.",
+      );
     }
     return simplifiedTargets(profile, config, "simplified", warnings, [
       "Profil simplifié : portions estimées d'après l'appétit déclaré.",
@@ -198,7 +189,9 @@ export function computeTargets(
     `Avec une activité « ${ACTIVITY_LABELS[profile.activity].label.toLowerCase()} » (×${factor}) : ${Math.round(maintenance)} kcal/jour pour maintenir le poids.`,
   );
   if (sex === "unspecified") {
-    warnings.push("Sexe physiologique non précisé : l'estimation utilise la moyenne des deux équations et peut s'écarter de ±80 kcal.");
+    warnings.push(
+      "Sexe physiologique non précisé : l'estimation utilise la moyenne des deux équations et peut s'écarter de ±80 kcal.",
+    );
   }
 
   let energy = maintenance;
@@ -212,7 +205,15 @@ export function computeTargets(
   if (profile.goal === "lose") {
     if (currentBmi < 18.5) {
       effectiveGoal = "maintain";
-      warnings.push("L'IMC calculé est inférieur à 18,5 : nous n'appliquons pas de déficit. Parlez-en à un professionnel de santé.");
+      warnings.push(
+        "L'IMC calculé est inférieur à 18,5 : nous n'appliquons pas de déficit. Parlez-en à un professionnel de santé.",
+      );
+    } else if (maintenance - floor < 50) {
+      // Maintenance is already at (or under) the safe minimum: no room for a deficit.
+      effectiveGoal = "maintain";
+      warnings.push(
+        `Vos besoins estimés (${Math.round(maintenance)} kcal/jour) sont déjà proches du minimum recommandé (${Math.round(floor)} kcal) : FOODLEK n'applique pas de déficit. Pour perdre du poids, parlez-en à un professionnel de santé ; plus d'activité physique est aussi une piste.`,
+      );
     } else if (profile.targetWeightKg !== null && profile.targetWeightKg < weight) {
       let target = profile.targetWeightKg;
       if (target < minHealthyKg) {
@@ -221,40 +222,46 @@ export function computeTargets(
           `Le poids souhaité correspond à un IMC inférieur à 18,5. FOODLEK vise au plus ${target} kg ; au-delà, parlez-en à un professionnel de santé.`,
         );
       }
-      const toLose = weight - target;
-      const maxWeekly = Math.min(weight * config.loss.maxWeeklyRatio, config.loss.maxWeeklyKg);
-      const maxDeficit = Math.min(config.loss.maxDeficitWithTargetKcal, maintenance - floor);
-      const defaultDeficit = Math.min(maintenance * config.loss.deficitRatio, config.loss.maxDeficitKcal);
-      const requestedDeficit =
-        profile.goalWeeks && profile.goalWeeks > 0 ? (toLose * config.kcalPerKg) / (profile.goalWeeks * 7) : defaultDeficit;
-      const deficit = Math.max(0, Math.min(requestedDeficit, (maxWeekly * config.kcalPerKg) / 7, maxDeficit));
-      energy = maintenance - deficit;
-      const weeklyChangeKg = (deficit * 7) / config.kcalPerKg;
-      weightPlan = {
-        currentKg: weight,
-        targetKg: target,
-        dailyDeltaKcal: -Math.round(deficit),
-        weeklyChangeKg: Math.round(weeklyChangeKg * 100) / 100,
-        projectedWeeks: weeklyChangeKg > 0 ? Math.ceil(toLose / weeklyChangeKg) : 0,
-        requestedWeeks: profile.goalWeeks,
-        slowedDown: deficit < requestedDeficit - 1,
-      };
-      explanation.push(
-        `Objectif ${target} kg : déficit de ${Math.round(deficit)} kcal/jour, soit environ ${weightPlan.weeklyChangeKg.toLocaleString("fr-FR")} kg par semaine et ${weightPlan.projectedWeeks} semaines estimées.`,
-      );
-      if (weightPlan.slowedDown && profile.goalWeeks) {
-        warnings.push(
-          `Atteindre ${target} kg en ${profile.goalWeeks} semaines demanderait de perdre plus de ${maxWeekly.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} kg par semaine ou de manger trop peu. FOODLEK garde un rythme sûr : comptez plutôt ${weightPlan.projectedWeeks} semaines.`,
+      if (target >= weight - 0.5) {
+        // Clamped to a healthy weight that is already (almost) reached: nothing to lose.
+        effectiveGoal = "maintain";
+        energy = maintenance;
+      } else {
+        const toLose = weight - target;
+        const maxWeekly = Math.min(weight * config.loss.maxWeeklyRatio, config.loss.maxWeeklyKg);
+        const maxDeficit = Math.min(config.loss.maxDeficitWithTargetKcal, maintenance - floor);
+        const defaultDeficit = Math.min(maintenance * config.loss.deficitRatio, config.loss.maxDeficitKcal);
+        const requestedDeficit =
+          profile.goalWeeks && profile.goalWeeks > 0 ? (toLose * config.kcalPerKg) / (profile.goalWeeks * 7) : defaultDeficit;
+        const deficit = Math.max(0, Math.min(requestedDeficit, (maxWeekly * config.kcalPerKg) / 7, maxDeficit));
+        energy = maintenance - deficit;
+        const weeklyChangeKg = (deficit * 7) / config.kcalPerKg;
+        weightPlan = {
+          currentKg: weight,
+          targetKg: target,
+          dailyDeltaKcal: -Math.round(deficit),
+          weeklyChangeKg: Math.round(weeklyChangeKg * 100) / 100,
+          projectedWeeks: weeklyChangeKg > 0 ? Math.ceil(toLose / weeklyChangeKg) : 0,
+          requestedWeeks: profile.goalWeeks,
+          slowedDown: deficit < requestedDeficit - 1,
+        };
+        explanation.push(
+          `Objectif ${target} kg : déficit de ${Math.round(deficit)} kcal/jour, soit environ ${weightPlan.weeklyChangeKg.toLocaleString("fr-FR")} kg par semaine et ${weightPlan.projectedWeeks} semaines estimées.`,
         );
+        if (weightPlan.slowedDown && profile.goalWeeks) {
+          warnings.push(
+            `Atteindre ${target} kg en ${profile.goalWeeks} semaines demanderait de perdre plus de ${maxWeekly.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} kg par semaine ou de manger trop peu. FOODLEK garde un rythme sûr : comptez plutôt ${weightPlan.projectedWeeks} semaines.`,
+          );
+        }
       }
     } else {
       const deficit = Math.min(maintenance * config.loss.deficitRatio, config.loss.maxDeficitKcal);
-      energy = Math.max(maintenance - deficit, floor);
+      energy = Math.min(maintenance, Math.max(maintenance - deficit, floor));
       explanation.push(
         `Objectif perte de poids : déficit modéré de ${Math.round(maintenance - energy)} kcal/jour (plafonné à ${config.loss.maxDeficitKcal} kcal, jamais sous ${Math.round(floor)} kcal).`,
       );
     }
-    if (effectiveGoal === "lose" && energy < floor) energy = floor;
+    if (effectiveGoal === "lose" && energy < floor) energy = Math.min(maintenance, floor);
   } else if (profile.goal === "gain") {
     const defaultSurplus = Math.min(maintenance * config.gain.surplusRatio, config.gain.maxSurplusKcal);
     if (profile.targetWeightKg !== null && profile.targetWeightKg > weight) {
@@ -278,7 +285,9 @@ export function computeTargets(
         `Objectif ${profile.targetWeightKg} kg : surplus de ${Math.round(surplus)} kcal/jour, environ ${weightPlan.weeklyChangeKg.toLocaleString("fr-FR")} kg par semaine et ${weightPlan.projectedWeeks} semaines estimées.`,
       );
       if (weightPlan.slowedDown && profile.goalWeeks) {
-        warnings.push(`Rythme demandé trop rapide pour une prise de masse de qualité : comptez plutôt ${weightPlan.projectedWeeks} semaines.`);
+        warnings.push(
+          `Rythme demandé trop rapide pour une prise de masse de qualité : comptez plutôt ${weightPlan.projectedWeeks} semaines.`,
+        );
       }
     } else {
       energy = maintenance + defaultSurplus;
@@ -287,8 +296,7 @@ export function computeTargets(
   }
 
   // Protein, computed on an adjusted weight above a BMI threshold.
-  const referenceWeight =
-    currentBmi > config.protein.adjustAboveBmi ? config.protein.referenceBmi * (height / 100) ** 2 : weight;
+  const referenceWeight = currentBmi > config.protein.adjustAboveBmi ? config.protein.referenceBmi * (height / 100) ** 2 : weight;
   let perKg = config.protein.defaultPerKg;
   if (effectiveGoal === "lose") perKg = config.protein.lossPerKg;
   if (effectiveGoal === "performance" || effectiveGoal === "gain") perKg = config.protein.performancePerKg;

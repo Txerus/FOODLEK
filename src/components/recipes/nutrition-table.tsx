@@ -14,7 +14,18 @@ interface Row {
 
 const fmt = (n: number, digits = 0) => n.toLocaleString("fr-FR", { maximumFractionDigits: digits });
 
-export function NutritionTable({ rows, quality, sources }: { rows: Row[]; quality: DataQuality; sources: string[] }) {
+export function NutritionTable({
+  rows,
+  quality,
+  sources,
+  partialFiber = [],
+}: {
+  rows: Row[];
+  quality: DataQuality;
+  sources: string[];
+  /** Ingredients without a fibre value: the fibre total is then a minimum. */
+  partialFiber?: string[];
+}) {
   return (
     <section aria-labelledby="nutri-title" className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
@@ -65,7 +76,10 @@ export function NutritionTable({ rows, quality, sources }: { rows: Row[]; qualit
                     <td className="px-3 py-2.5 text-right">{fmt(r.nutrients.proteinG)} g</td>
                     <td className="px-3 py-2.5 text-right">{fmt(r.nutrients.fatG)} g</td>
                     <td className="px-3 py-2.5 text-right">{fmt(r.nutrients.carbsG)} g</td>
-                    <td className="px-4 py-2.5 text-right">{fmt(r.nutrients.fiberG, 1)} g</td>
+                    <td className="px-4 py-2.5 text-right">
+                      {partialFiber.length > 0 ? "≥ " : ""}
+                      {fmt(r.nutrients.fiberG, 1)} g
+                    </td>
                   </>
                 ) : (
                   <td colSpan={5} className="px-4 py-2.5 text-right text-muted-foreground">
@@ -77,6 +91,11 @@ export function NutritionTable({ rows, quality, sources }: { rows: Row[]; qualit
           </tbody>
         </table>
       </div>
+      {partialFiber.length > 0 ? (
+        <p className="text-xs text-muted-foreground">
+          Fibres : valeur minimale, la table de référence ne donne pas les fibres de : {partialFiber.join(", ")}.
+        </p>
+      ) : null}
       <p className="text-xs text-muted-foreground">
         Estimations générales calculées à partir de tables de composition ; elles ne remplacent pas l'avis d'un professionnel de santé.
       </p>

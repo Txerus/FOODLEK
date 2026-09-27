@@ -61,8 +61,12 @@ export interface PortionItem {
   ingredientId: string;
   ingredientName: string;
   role: IngredientRole;
+  /** Rounded for display ("½ œuf", "85 g"). */
   quantity: number;
+  /** Exact amount on this plate, in `unit`: nutrition and shopping use it, never the rounded one. */
+  exactQuantity: number;
   unit: Unit;
+  /** Exact weight on this plate. */
   grams: number;
   /** For starches with a known cooking yield: approximate cooked weight. */
   cookedGrams: number | null;
@@ -169,13 +173,16 @@ function portionItemsFor(
     const ing = ingredients.get(ri.ingredientId);
     if (!ing) continue;
     const raw = (ri.quantity / recipe.servings) * factors[groupOfRole(ri.role)];
-    const quantity = roundForKitchen(raw, ri.unit);
-    const grams = toGrams(quantity, ri.unit, ing.measures);
+    // Rounding each plate (½ egg minimum…) would add up to phantom quantities
+    // on the shopping list: plates keep the exact amount, and only what is
+    // shown is rounded (the cooking total is rounded once, on the sum).
+    const grams = toGrams(raw, ri.unit, ing.measures);
     items.push({
       ingredientId: ing.id,
       ingredientName: ing.name,
       role: ri.role,
-      quantity,
+      quantity: roundForKitchen(raw, ri.unit),
+      exactQuantity: raw,
       unit: ri.unit,
       grams,
       cookedGrams: ing.cookedYield ? Math.round((grams * ing.cookedYield) / 5) * 5 : null,
@@ -217,7 +224,8 @@ export interface CookingQuantity {
 
 /**
  * What to actually weigh for the cooking session: the exact sum of every
- * person's portion, so the shopping list and the plates always add up.
+ * person's portion (so the shopping list and the plates always add up),
+ * rounded once for the cook.
  */
 export function cookingQuantities(portions: readonly MemberPortion[]): CookingQuantity[] {
   const byIngredient = new Map<string, CookingQuantity>();
@@ -226,18 +234,18 @@ export function cookingQuantities(portions: readonly MemberPortion[]): CookingQu
       const key = `${item.ingredientId}:${item.unit}`;
       const existing = byIngredient.get(key);
       if (existing) {
-        existing.quantity += item.quantity;
+        existing.quantity += item.exactQuantity;
         existing.grams += item.grams;
       } else {
         byIngredient.set(key, {
           ingredientId: item.ingredientId,
           ingredientName: item.ingredientName,
-          quantity: item.quantity,
+          quantity: item.exactQuantity,
           unit: item.unit,
           grams: item.grams,
         });
       }
     }
   }
-  return [...byIngredient.values()];
+  return [...byIngredient.values()].map((q) => ({ ...q, quantity: roundForKitchen(q.quantity, q.unit) }));
 }

@@ -23,7 +23,7 @@ export interface PackagingConfig {
   preferencePenalty: number;
   /** Relative penalty applied to substitution products. */
   substitutionPenalty: number;
-  /** Safety cap on packs of a single product. */
+  /** Safety cap on packs of a single product (the smallest pack is never capped). */
   maxPacksPerOffer: number;
 }
 
@@ -87,11 +87,18 @@ export function selectPacks(
 ): PackSelection | null {
   const candidates = usableOffers(offers, prefs)
     .slice()
-    .sort((a, b) => a.packQuantity - b.packQuantity || a.productId.localeCompare(b.productId));
+    // Largest packs first: the smallest pack is searched last and simply fills
+    // what remains, without a count cap (loose produce sold per 100 g, eggs by
+    // the unit…), so a large need can always be covered.
+    .sort((a, b) => b.packQuantity - a.packQuantity || a.productId.localeCompare(b.productId));
   if (candidates.length === 0) return null;
   if (need <= 0) return { choices: [], purchasedQuantity: 0, leftover: 0, costCents: 0, leftoverValueCents: 0 };
 
   const ww = wasteWeight(ingredient, config);
+  // Without a cap the search stays small for usual needs; only a huge search
+  // space (many offers × very large need) falls back to the safety cap.
+  const searchSize = candidates.slice(0, -1).reduce((n, o) => n * (Math.ceil(need / o.packQuantity) + 1), 1);
+  const uncapped = searchSize <= 200_000;
   let bestScore = Infinity;
   let best: number[] | null = null;
   const counts = new Array<number>(candidates.length).fill(0);
@@ -126,7 +133,15 @@ export function selectPacks(
       return;
     }
     const remaining = Math.max(0, need - covered);
-    const maxCount = Math.min(config.maxPacksPerOffer, Math.ceil(remaining / candidates[i].packQuantity));
+    const exact = Math.ceil(remaining / candidates[i].packQuantity - 1e-9);
+    if (i === candidates.length - 1) {
+      // Last (smallest) pack: buying exactly what covers the rest is optimal.
+      counts[i] = exact;
+      evaluate();
+      counts[i] = 0;
+      return;
+    }
+    const maxCount = uncapped ? exact : Math.min(config.maxPacksPerOffer, exact);
     for (let c = 0; c <= maxCount; c++) {
       counts[i] = c;
       recurse(i + 1, covered + c * candidates[i].packQuantity);

@@ -10,6 +10,7 @@ import { ing, recipe } from "./recipe-helpers";
 import { BREAKFAST_RECIPES } from "./recipes-breakfasts";
 import { DESSERT_RECIPES } from "./recipes-desserts";
 import { MAIN_RECIPES } from "./recipes-mains";
+import { MORE_RECIPES } from "./recipes-more";
 import { SNACK_RECIPES } from "./recipes-snacks";
 
 const SUMMER = [6, 7, 8, 9];
@@ -958,4 +959,4 @@ const BASE_RECIPES: Recipe[] = [
 ];
 
 /** Every recipe of the catalogue. */
-export const RECIPES: Recipe[] = [...BASE_RECIPES, ...MAIN_RECIPES, ...BREAKFAST_RECIPES, ...DESSERT_RECIPES, ...SNACK_RECIPES];
+export const RECIPES: Recipe[] = [...BASE_RECIPES, ...MAIN_RECIPES, ...BREAKFAST_RECIPES, ...DESSERT_RECIPES, ...SNACK_RECIPES, ...MORE_RECIPES];

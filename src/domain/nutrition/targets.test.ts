@@ -133,3 +133,26 @@ describe("mealTarget", () => {
     expect(m.estimated).toBe(true);
   });
 });
+
+describe("weight loss when maintenance is already at the floor", () => {
+  it("never sets energy above maintenance and does not promise a pace", () => {
+    const small = { ...alex, sex: "female" as const, birthYear: 1956, heightCm: 150, weightKg: 45, activity: "sedentary" as const, goal: "lose" as const, targetWeightKg: 43, goalWeeks: 10 };
+    const t = computeTargets(small, TODAY);
+    expect(t.effectiveGoal).toBe("maintain");
+    expect(t.weightPlan).toBeNull();
+    expect(t.warnings.some((w) => w.includes("minimum recommandé"))).toBe(true);
+    const maintenanceLine = t.explanation.find((e) => e.includes("pour maintenir"))!;
+    const maintenance = Number(maintenanceLine.match(/: (\d[\d\s ]*) kcal\/jour pour maintenir/)![1].replace(/\s/g, ""));
+    expect(t.energyKcal!).toBeLessThanOrEqual(maintenance + 1);
+  });
+});
+
+describe("weight-loss target clamped to the current weight", () => {
+  it("falls back to maintenance instead of a zero-deficit plan", () => {
+    const p = { ...camille, heightCm: 165, weightKg: 51, goal: "lose" as const, targetWeightKg: 45, goalWeeks: 20 };
+    const t = computeTargets(p, TODAY);
+    expect(t.effectiveGoal).toBe("maintain");
+    expect(t.weightPlan).toBeNull();
+    expect(t.warnings.some((w) => w.includes("IMC inférieur à 18,5"))).toBe(true);
+  });
+});

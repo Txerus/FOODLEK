@@ -110,7 +110,8 @@ describe("hard constraints", () => {
 
   it("reports slots that no recipe can fill", () => {
     const input = demoInput({ iterations: 50 });
-    input.preferences = { ...input.preferences, equipment: [] };
+    // No equipment and 5 minutes: even the no-cook salads take longer to prepare.
+    input.preferences = { ...input.preferences, equipment: [], maxWeekdayMinutes: 5, maxWeekendMinutes: 5 };
     const result = optimizePlan(input);
     expect(result.unfillable.length).toBeGreaterThan(0);
   });

@@ -1,4 +1,6 @@
 import "server-only";
+import { usableOffers } from "@/domain/shopping/packaging";
+import { DEFAULT_RETAIL_PREFERENCES, type RetailPreferences } from "@/domain/retail/types";
 import { worstQuality, type DataQuality } from "@/domain/common/data-quality";
 import { checkRecipeForEaters, compatibleDiets, recipeAllergens, type Diet } from "@/domain/catalog/diets";
 import type { Allergen, IngredientIndex, MealType, Recipe } from "@/domain/catalog/types";
@@ -24,7 +26,12 @@ export interface ServingCost {
  * cheapest unit price of its mapped products. This is an estimate — the real
  * cost comes from the packs chosen in the shopping list.
  */
-export function estimateServingCost(recipe: Recipe, ingredients: IngredientIndex, offers: OfferIndex): ServingCost {
+export function estimateServingCost(
+  recipe: Recipe,
+  ingredients: IngredientIndex,
+  offers: OfferIndex,
+  prefs: RetailPreferences = DEFAULT_RETAIL_PREFERENCES,
+): ServingCost {
   let total = 0;
   const missing: string[] = [];
   const qualities: DataQuality[] = [];
@@ -33,7 +40,8 @@ export function estimateServingCost(recipe: Recipe, ingredients: IngredientIndex
     if (!ing) continue;
     const grams = recipeIngredientGrams(ri, ing, 1 / recipe.servings);
     const qty = gramsToPurchaseUnit(grams, ing.purchaseUnit, ing.measures);
-    const priced = (offers.get(ing.id) ?? []).filter((o) => o.priceCents !== null && o.packQuantity > 0);
+    // Same filters as the shopping list (availability, promotions accepted or not).
+    const priced = usableOffers(offers.get(ing.id) ?? [], prefs);
     if (priced.length === 0) {
       missing.push(ing.name);
       continue;
@@ -50,6 +58,11 @@ export function estimateServingCost(recipe: Recipe, ingredients: IngredientIndex
     quality: missing.length ? "MISSING" : base === "DEMO" ? "DEMO" : "ESTIMATED",
     missing,
   };
+}
+
+function retailPrefsOf(ctx: HouseholdContext): RetailPreferences {
+  const s = ctx.settings;
+  return s ? { organic: s.organic, storeBrand: s.storeBrand, acceptPromotions: s.acceptPromotions } : DEFAULT_RETAIL_PREFERENCES;
 }
 
 export interface RecipeCardData {
@@ -71,7 +84,7 @@ export async function listRecipesForHousehold(householdId: string): Promise<{ ca
     return {
       recipe,
       nutrition: recipeNutritionPerServing(recipe, catalog.ingredientIndex),
-      cost: estimateServingCost(recipe, catalog.ingredientIndex, offers),
+      cost: estimateServingCost(recipe, catalog.ingredientIndex, offers, retailPrefsOf(ctx)),
       allergens: recipeAllergens(recipe, catalog.ingredientIndex),
       diets: compatibleDiets(recipe, catalog.ingredientIndex),
       eligible: check.eligible,
@@ -103,7 +116,7 @@ export async function getRecipeDetail(householdId: string, slug: string, slotKey
   const base = {
     recipe,
     nutrition: recipeNutritionPerServing(recipe, catalog.ingredientIndex),
-    cost: estimateServingCost(recipe, catalog.ingredientIndex, offers),
+    cost: estimateServingCost(recipe, catalog.ingredientIndex, offers, retailPrefsOf(ctx)),
     allergens: recipeAllergens(recipe, catalog.ingredientIndex),
     diets: compatibleDiets(recipe, catalog.ingredientIndex),
     eligible: check.eligible,

@@ -158,3 +158,16 @@ describe("buildShoppingList", () => {
     expect(list.usageRatio).toBeCloseTo(0.95);
   });
 });
+
+describe("selectPacks with large needs (audit regressions)", () => {
+  it("does not cap the larger packs", () => {
+    const s = selectPacks(20000, chicken, [offer("p400", 400, 580), offer("p1000", 1000, 1190)], DEFAULT_RETAIL_PREFERENCES)!;
+    expect(s.costCents).toBe(20 * 1190);
+  });
+
+  it("covers a large loose need in 100 g steps", () => {
+    const s = selectPacks(1500, carrot, [offer("vrac", 100, 25), offer("sac", 2500, 450)], DEFAULT_RETAIL_PREFERENCES)!;
+    expect(s.purchasedQuantity).toBeGreaterThanOrEqual(1500);
+    expect(s.costCents).toBeLessThanOrEqual(450);
+  });
+});

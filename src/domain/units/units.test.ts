@@ -55,10 +55,11 @@ describe("roundForKitchen", () => {
     expect(roundForKitchen(0, "g")).toBe(0);
   });
 
-  it("rounds pieces and spoons to halves, with a minimum", () => {
+  it("rounds pieces and spoons to halves, quarters below one, with a minimum", () => {
     expect(roundForKitchen(1.3, "piece")).toBe(1.5);
-    expect(roundForKitchen(0.1, "piece")).toBe(0.5);
-    expect(roundForKitchen(0.8, "tbsp")).toBe(1);
+    expect(roundForKitchen(0.1, "piece")).toBe(0.25);
+    expect(roundForKitchen(0.4, "piece")).toBe(0.5);
+    expect(roundForKitchen(0.8, "tbsp")).toBe(0.75);
   });
 });
 

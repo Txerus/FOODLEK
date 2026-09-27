@@ -205,6 +205,7 @@ export default async function RecipePage({ params, searchParams }: PageProps<"/r
       <NutritionTable
         quality={detail.nutrition.quality}
         sources={detail.nutrition.sources}
+        partialFiber={detail.nutrition.partialNutrients.find((p) => p.nutrient === "fiberG")?.ingredients ?? []}
         rows={[
           ...portions.map((p) => {
             const member = ctx.members.find((m) => m.id === p.memberId);
