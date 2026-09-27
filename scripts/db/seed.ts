@@ -8,7 +8,7 @@
  *
  * Run with: pnpm db:seed
  */
-import "dotenv/config";
+import "../env";
 import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
@@ -213,6 +213,10 @@ async function seedFlags() {
 }
 
 async function seedDemoAccount() {
+  if (!process.env.BETTER_AUTH_SECRET) {
+    log("Compte démo ignoré : BETTER_AUTH_SECRET absent de .env / .env.local (le catalogue est bien à jour).");
+    return;
+  }
   if (process.env.NODE_ENV === "production") {
     log("Production : compte de démonstration non créé.");
     return;

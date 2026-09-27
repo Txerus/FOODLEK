@@ -10,7 +10,7 @@
  * prices.openfoodfacts.org. OPEN_DATA_CONTACT (e-mail) is sent in the
  * User-Agent, as Open Food Facts asks.
  */
-import "dotenv/config";
+import "../env";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { INGREDIENT_SEEDS, ingredientId } from "../../src/data/ingredients";

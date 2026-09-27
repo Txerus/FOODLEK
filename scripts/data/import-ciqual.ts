@@ -8,7 +8,7 @@
  * version. Ingredients are re-linked only when data/reference/ciqual-mapping.json
  * gives a verified alim_code for them.
  */
-import "dotenv/config";
+import "../env";
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";

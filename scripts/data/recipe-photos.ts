@@ -9,7 +9,7 @@
  *
  * Needs PEXELS_API_KEY in .env and internet access.
  */
-import "dotenv/config";
+import "../env";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";

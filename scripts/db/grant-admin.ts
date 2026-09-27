@@ -2,7 +2,7 @@
  * Gives the back-office role to an existing account.
  *   pnpm admin:grant moi@example.com
  */
-import "dotenv/config";
+import "../env";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";

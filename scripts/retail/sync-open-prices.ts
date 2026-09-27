@@ -8,7 +8,7 @@
  * Requires OPEN_PRICES_ENABLED=true and OPEN_DATA_CONTACT (User-Agent contact).
  * A failure is logged in sync_logs and never touches existing prices.
  */
-import "dotenv/config";
+import "../env";
 import { and, eq, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
