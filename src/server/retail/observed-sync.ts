@@ -160,10 +160,16 @@ async function pricesAt(
   since: string,
 ): Promise<OpenPricesPrice[]> {
   if (locationIds === null) {
-    const params = new URLSearchParams({ ...filter, date__gte: since, order_by: "-date", size: "100" });
-    return pageOf(priceSchema)
-      .parse(await getJson(`/prices?${params}`))
-      .items.filter((p) => (p.location?.osm_address_country_code ?? "").toUpperCase() === "FR");
+    // Prices from all over the world: keep France, reading a few pages if the
+    // first one is mostly foreign.
+    const out: OpenPricesPrice[] = [];
+    for (let page = 1; page <= 3; page++) {
+      const params = new URLSearchParams({ ...filter, date__gte: since, order_by: "-date", size: "100", page: String(page) });
+      const data = pageOf(priceSchema).parse(await getJson(`/prices?${params}`));
+      out.push(...data.items.filter((p) => (p.location?.osm_address_country_code ?? "").toUpperCase() === "FR"));
+      if (out.length >= 20 || page >= data.pages) break;
+    }
+    return out;
   }
   const out: OpenPricesPrice[] = [];
   for (let i = 0; i < locationIds.length; i += ID_CHUNK) {

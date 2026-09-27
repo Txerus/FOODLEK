@@ -72,9 +72,24 @@ export function IngredientPicker({
           placeholder={placeholder}
           aria-label={label}
           aria-controls={listId}
+          aria-describedby={matches.length > 0 ? `${listId}-hint` : undefined}
           autoComplete="off"
+          onKeyDown={(e) => {
+            // Enter adds the first suggestion (and never submits the surrounding form).
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            const first = matches[0];
+            if (!first) return;
+            onChange([...value, first.id]);
+            setQuery("");
+          }}
         />
       </InputGroup>
+      {matches.length > 0 ? (
+        <p id={`${listId}-hint`} className="-mb-1 text-xs text-muted-foreground">
+          Entrée : ajouter « {matches[0].name} »
+        </p>
+      ) : null}
       {matches.length > 0 ? (
         <ul id={listId} className="flex flex-wrap gap-2" aria-label="Suggestions">
           {matches.map((i) => (

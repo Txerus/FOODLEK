@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -229,7 +228,24 @@ export function CookingMode({
             </label>
           ) : null}
         </div>
-        <Progress value={((index + 1) / steps.length) * 100} aria-label={`Étape ${index + 1} sur ${steps.length}`} className="h-1.5" />
+        {/* One dot per step: jump straight to any step (useful to re-read one). */}
+        <ol className="flex gap-1.5" aria-label="Étapes de la recette">
+          {steps.map((_, i) => (
+            <li key={i} className="flex-1">
+              <button
+                type="button"
+                onClick={() => go(i - index)}
+                aria-label={`Aller à l'étape ${i + 1}`}
+                aria-current={i === index ? "step" : undefined}
+                className="group block w-full py-2"
+              >
+                <span
+                  className={`block h-2 w-full rounded-full transition-colors group-hover:bg-primary/80 ${i < index ? "bg-primary/60" : i === index ? "bg-primary" : "bg-muted"}`}
+                />
+              </button>
+            </li>
+          ))}
+        </ol>
       </div>
 
       <section key={index} className="flex flex-1 animate-rise flex-col justify-center gap-8 py-10" aria-live="polite">

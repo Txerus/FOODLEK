@@ -86,7 +86,8 @@ export function selectPacks(
   config: PackagingConfig = DEFAULT_PACKAGING_CONFIG,
 ): PackSelection | null {
   const candidates = usableOffers(offers, prefs)
-    .slice()
+    // A pack in another unit than the ingredient's (a bad mapping) cannot be counted.
+    .filter((o) => o.packUnit === ingredient.purchaseUnit)
     // Largest packs first: the smallest pack is searched last and simply fills
     // what remains, without a count cap (loose produce sold per 100 g, eggs by
     // the unit…), so a large need can always be covered.

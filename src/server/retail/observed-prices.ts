@@ -285,6 +285,18 @@ export function regularPriceCents(p: OpenPricesPrice): { cents: number; wasPromo
   return { cents: Math.round(paid * 100), wasPromotion: false };
 }
 
+/**
+ * Drops offers whose price per kg / l / piece is more than 3 times away from
+ * the median of the others: almost always a misread label (a "1/2 kg"
+ * read as 2 kg) or a mismatched product, which would otherwise come first.
+ */
+export function withoutOutliers<T extends { unitPriceCents: number }>(offers: T[]): T[] {
+  if (offers.length < 3) return offers;
+  const m = median(offers.map((o) => o.unitPriceCents));
+  if (m <= 0) return offers;
+  return offers.filter((o) => o.unitPriceCents >= m / 3 && o.unitPriceCents <= m * 3);
+}
+
 export function median(values: number[]): number {
   const s = [...values].sort((a, b) => a - b);
   const mid = Math.floor(s.length / 2);
@@ -381,7 +393,7 @@ export function productOffers(
       imageUrl: safeImageUrl(product.image_url),
     });
   }
-  return out.sort((a, b) => a.unitPriceCents - b.unitPriceCents);
+  return withoutOutliers(out).sort((a, b) => a.unitPriceCents - b.unitPriceCents);
 }
 
 /**
@@ -409,8 +421,12 @@ export function looseOffer(
   // Prefer the pricing mode that needs no conversion.
   const order = ingredient.purchaseUnit === "piece" ? ["UNIT", "KILOGRAM"] : ["KILOGRAM", "UNIT"];
   for (const per of order) {
-    const obs = byPer.get(per);
-    if (!obs || obs.length === 0) continue;
+    const all = byPer.get(per);
+    if (!all || all.length === 0) continue;
+    // Organic and conventional produce are not the same price: the median
+    // uses conventional observations when there are any.
+    const conventional = all.filter((o) => !(o.p.labels_tags ?? []).includes("en:organic"));
+    const obs = conventional.length > 0 ? conventional : all;
     const m = median(obs.map((o) => o.cents));
     const last = obs.reduce((a, b) => ((a.p.date ?? "") >= (b.p.date ?? "") ? a : b));
     const isOrganic = obs.every((o) => (o.p.labels_tags ?? []).includes("en:organic"));

@@ -191,3 +191,23 @@ describe("review of 27/09/2026", () => {
     expect(matchesSpec({ product_name: "Lentilles vertes au naturel 265 g égoutté", categories_tags: ["en:green-lentils"] }, OBSERVED_PRICE_SPECS["lentilles-vertes"])).toBe(false);
   });
 });
+
+describe("sanity of observed prices", () => {
+  it("drops a unit price far from the others", async () => {
+    const { withoutOutliers } = await import("./observed-prices");
+    const kept = withoutOutliers([{ unitPriceCents: 200 }, { unitPriceCents: 220 }, { unitPriceCents: 250 }, { unitPriceCents: 40 }]);
+    expect(kept.map((o) => o.unitPriceCents)).toEqual([200, 220, 250]);
+    expect(withoutOutliers([{ unitPriceCents: 40 }, { unitPriceCents: 400 }])).toHaveLength(2);
+  });
+
+  it("uses conventional loose prices when both organic and conventional exist", () => {
+    const loose = [
+      price({ id: 60, type: "CATEGORY", category_tag: "en:carrots", price_per: "KILOGRAM", price: 1.2 }),
+      price({ id: 61, type: "CATEGORY", category_tag: "en:carrots", price_per: "KILOGRAM", price: 1.4 }),
+      price({ id: 62, type: "CATEGORY", category_tag: "en:carrots", price_per: "KILOGRAM", price: 3.5, labels_tags: ["en:organic"] }),
+    ];
+    const offer = looseOffer(loose, { name: "Carotte", purchaseUnit: "g", measures: {} }, true)!;
+    expect(offer.unitPriceCents).toBe(130);
+    expect(offer.isOrganic).toBe(false);
+  });
+});

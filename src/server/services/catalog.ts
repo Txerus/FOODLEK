@@ -147,11 +147,34 @@ async function loadFromDb(): Promise<Catalog> {
  * The catalogue (ingredients + validated recipes) changes rarely; it is cached
  * in memory for a few minutes and invalidated by the back-office.
  */
+const globalForRefresh = globalThis as unknown as { __foodlekCatalogRefresh?: Promise<Catalog> };
+
+/**
+ * The catalogue, cached for 5 minutes. Once expired, the stale copy is still
+ * served while a single refresh runs in the background: many requests at the
+ * expiry moment do not all reload it from the database.
+ */
 export async function getCatalog(): Promise<Catalog> {
   const cached = globalForCatalog.__foodlekCatalog;
   if (cached) {
     const catalog = await cached;
     if (Date.now() - catalog.loadedAt < TTL_MS) return catalog;
+    if (!globalForRefresh.__foodlekCatalogRefresh) {
+      const refresh = loadFromDb();
+      globalForRefresh.__foodlekCatalogRefresh = refresh;
+      refresh
+        .then((fresh) => {
+          // Ignored if the catalogue was invalidated meanwhile (admin change).
+          if (globalForRefresh.__foodlekCatalogRefresh === refresh) globalForCatalog.__foodlekCatalog = Promise.resolve(fresh);
+        })
+        .catch(() => {
+          // Keep serving the stale copy; the next request tries again.
+        })
+        .finally(() => {
+          if (globalForRefresh.__foodlekCatalogRefresh === refresh) globalForRefresh.__foodlekCatalogRefresh = undefined;
+        });
+    }
+    return catalog;
   }
   const loading = loadFromDb();
   globalForCatalog.__foodlekCatalog = loading;
@@ -165,4 +188,5 @@ export async function getCatalog(): Promise<Catalog> {
 
 export function invalidateCatalog(): void {
   globalForCatalog.__foodlekCatalog = undefined;
+  globalForRefresh.__foodlekCatalogRefresh = undefined;
 }

@@ -1,3 +1,4 @@
+import { roundForKitchen } from "../units/units";
 import { formatEuros } from "../common/money";
 import { MEAL_TYPE_LABELS, type Ingredient, type IngredientIndex, type Recipe } from "../catalog/types";
 import { selectPacks } from "../shopping/packaging";
@@ -25,7 +26,8 @@ export function slotLabel(slot: PlanSlot): string {
 }
 
 function formatAmount(q: number, ingredient: Ingredient): string {
-  return formatIngredientAmount(Math.round(q), ingredient.purchaseUnit, ingredient);
+  // Kitchen rounding ("½ œuf", "250 g"), never "0 œuf".
+  return formatIngredientAmount(roundForKitchen(q, ingredient.purchaseUnit), ingredient.purchaseUnit, ingredient);
 }
 
 /** Minimum avoided leftover worth mentioning, per purchase unit. */

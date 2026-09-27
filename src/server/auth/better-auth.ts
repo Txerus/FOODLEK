@@ -58,7 +58,8 @@ function createAuth() {
     session: {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
-      cookieCache: { enabled: true, maxAge: 5 * 60 },
+      // Short: a session revoked elsewhere (password change, deletion) stops working within a minute.
+      cookieCache: { enabled: true, maxAge: 60 },
     },
     rateLimit: {
       enabled: config.NODE_ENV === "production",

@@ -185,7 +185,8 @@ function portionItemsFor(
       exactQuantity: raw,
       unit: ri.unit,
       grams,
-      cookedGrams: ing.cookedYield ? Math.round((grams * ing.cookedYield) / 5) * 5 : null,
+      // Rounded to 5 g, but never shown as "0 g cuit" for a small amount.
+      cookedGrams: ing.cookedYield ? Math.max(5, Math.round((grams * ing.cookedYield) / 5) * 5) : null,
     });
     weighted.push({ ingredient: ing, grams });
   }

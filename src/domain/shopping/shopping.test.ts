@@ -94,8 +94,12 @@ describe("selectPacks", () => {
   });
 
   it("does not penalise leftovers of staples", () => {
-    const s = selectPacks(30, oil, [offer("o500", 500, 499), offer("o1000", 1000, 899)], DEFAULT_RETAIL_PREFERENCES);
+    const s = selectPacks(30, oil, [offer("o500", 500, 499, { packUnit: "ml" }), offer("o1000", 1000, 899, { packUnit: "ml" })], DEFAULT_RETAIL_PREFERENCES);
     expect(s!.choices[0].offer.productId).toBe("o500");
+  });
+
+  it("never counts a pack sold in another unit than the ingredient", () => {
+    expect(selectPacks(30, oil, [offer("grams", 500, 100)], DEFAULT_RETAIL_PREFERENCES)).toBeNull();
   });
 
   it("ignores unavailable or unpriced offers and returns null when nothing is usable", () => {
